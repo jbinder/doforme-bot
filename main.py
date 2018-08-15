@@ -68,9 +68,12 @@ def new_chat_member(bot, update):
 
 
 def left_chat_member(bot, update):
-    state['users'][update.message.chat_id].remove(update.left_chat_member.id)
-    update.message.reply_text(
-        f"Farewell, my dear little exhausted busy bee {update.left_chat_member.first_name}!")
+    chat_id = update.message.chat_id
+    user_id = update.left_chat_member.id
+    if chat_id in state['users'] and user_id in state['users'][chat_id]:
+        state['users'][chat_id].remove(user_id)
+        update.message.reply_text(
+            f"Farewell, my dear little exhausted busy bee {update.left_chat_member.first_name}!")
 
 
 def callback(bot, update, user_data):
@@ -81,7 +84,7 @@ def callback(bot, update, user_data):
         state['tasks'][user_id] = []
     state['tasks'][user_id].append(user_data)
     update.callback_query.message.reply_text(
-        f"I burdened {user_name} with your request to {user_data['task']}.",
+        f"I burdened {user_name} with your request to {user_data['title']}.",
         quote=False)
     update.callback_query.answer()
 
