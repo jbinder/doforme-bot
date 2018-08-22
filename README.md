@@ -2,6 +2,7 @@ DoForMe
 =======
 
 A Telegram bot to assign tasks to other people.
+Just add it to a group and follow the instructions.
 
 :construction: Under construction!
 
