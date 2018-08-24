@@ -2,7 +2,7 @@ import argparse
 import logging
 
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.ext import Updater, ConversationHandler, CommandHandler, MessageHandler, Filters, \
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, \
     CallbackQueryHandler
 
 # USER = range(1)
@@ -40,13 +40,13 @@ def get_chats(bot, user_id):
 def select_chat(bot, update, user_data):
     if update.message.chat.type != 'private':
         update.message.reply_text(f"Please write your task directly to @{bot_name}!")
-        return ConversationHandler.END
+        return
 
     text = update.message.text[len("/do"):].strip()
     if text == "@DoForMeBot" or not text:
         update.message.reply_text(
             f"Please include a task title, {update.effective_user.first_name}!\n")
-        return ConversationHandler.END
+        return
 
     user_data['title'] = text
     user_data['owner_user_id'] = update.effective_user.id
@@ -77,12 +77,20 @@ def add_task(bot, message, user_data):
     if user_id not in state['tasks']:
         state['tasks'][user_id] = []
     # TODO: append if exists
-    state['tasks'][user_id].append(user_data)
+    state['tasks'][user_id].append(user_data.copy())
     message.reply_text(
         f"I burdened {user_name} with your request to {user_data['title']}.",
         quote=False)
     owner_user_name = bot.getChatMember(message.chat.id, user_data['owner_user_id']).user.name
     bot.send_message(user_data['chat_id'], f"{owner_user_name} loaded {user_data['title']} on {user_name}'s back.")
+
+
+def show_tasks(bot, update, user_data):
+    user_id = update.effective_user.id
+    tasks = [f"{bot.getChat(task['chat_id']).title}: {task['title']} from "
+             f"{bot.getChatMember(update.message.chat.id, task['user_id']).user.name}"
+             for task in state['tasks'][user_id]]
+    update.message.reply_text("\n".join(tasks))
 
 
 # def shrug(bot, update, user_data):
@@ -109,8 +117,9 @@ def register_user(chat_id, member, update):
     if member.id not in state['users'][chat_id]:
         update.message.reply_text(
             f"Welcome in the {update.message.chat.title}'s realm of productivity, "
-            f"{member.first_name}! Use"
-            f"\n\n/do [your task title]\n\nto start distributing tasks to your helpful peers!\n")
+            f"{member.first_name}! Use\n\n"
+            f"/do [your task title] - to start distributing tasks to your helpful peers\n"
+            f"/tasks - to list your duties")
         state['users'][chat_id].append(member.id)
 
 
@@ -165,6 +174,7 @@ def main():
     # )
     # dp.add_handler(conv_handler)
     dp.add_handler(CommandHandler('do', select_chat, pass_user_data=True))
+    dp.add_handler(CommandHandler('tasks', show_tasks, pass_user_data=True))
     dp.add_handler(MessageHandler(Filters.status_update.new_chat_members, new_chat_member))
     dp.add_handler(MessageHandler(Filters.status_update.left_chat_member, left_chat_member))
     dp.add_handler(CallbackQueryHandler(callback, pass_user_data=True))
