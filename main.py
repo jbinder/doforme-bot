@@ -2,7 +2,7 @@ import argparse
 import logging
 
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.ext import Updater, ConversationHandler, CommandHandler, RegexHandler, MessageHandler, Filters, \
+from telegram.ext import Updater, ConversationHandler, CommandHandler, MessageHandler, Filters, \
     CallbackQueryHandler
 
 # USER = range(1)
@@ -16,9 +16,11 @@ state = {
     'tasks': {},
 }
 
+bot_name = "DoForMeBot"
+
 
 def get_args():
-    parser = argparse.ArgumentParser(description='Run the DoForMe-Bot for Telegram.')
+    parser = argparse.ArgumentParser(description=f"Run the {bot_name} for Telegram.")
     parser.add_argument('-t', dest="token", required=True, help='Your Telegram API token')
     return parser.parse_args()
 
@@ -37,7 +39,7 @@ def get_chats(bot, user_id):
 
 def select_chat(bot, update, user_data):
     if update.message.chat.type != 'private':
-        update.message.reply_text("Please write your task directly to the bot!")
+        update.message.reply_text(f"Please write your task directly to @{bot_name}!")
         return ConversationHandler.END
 
     text = update.message.text[len("/do"):].strip()
@@ -79,6 +81,8 @@ def add_task(bot, message, user_data):
     message.reply_text(
         f"I burdened {user_name} with your request to {user_data['title']}.",
         quote=False)
+    owner_user_name = bot.getChatMember(message.chat.id, user_data['owner_user_id']).user.name
+    bot.send_message(user_data['chat_id'], f"{owner_user_name} loaded {user_data['title']} on {user_name}'s back.")
 
 
 # def shrug(bot, update, user_data):
