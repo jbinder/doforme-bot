@@ -6,17 +6,16 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, \
     CallbackQueryHandler
 
 # USER = range(1)
-
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-state = {
-    'users': {},
-    'tasks': {},
-}
+from services.task_service import TaskService
+from services.user_service import UserService
 
 bot_name = "DoForMeBot"
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    level=logging.INFO)
+
+logger = logging.getLogger(__name__)
+user_service = UserService()
+task_service = TaskService()
 
 
 def get_args():
@@ -26,14 +25,14 @@ def get_args():
 
 
 def get_chat_users(bot, chat_id):
-    return [(user_id, bot.getChatMember(chat_id, user_id).user.name) for user_id in state['users'][chat_id]]
+    return [(user_id, bot.getChatMember(chat_id, user_id).user.name)
+            for user_id in user_service.get_chat_users(chat_id)]
 
 
 def get_chats(bot, user_id):
     chats = []
-    for chat_id in state['users']:
-        if user_id in state['users'][chat_id]:
-            chats.append((chat_id, bot.getChat(chat_id).title))
+    for chat_id in user_service.get_chats_of_user(user_id):
+        chats.append((chat_id, bot.getChat(chat_id).title))
     return chats
 
 
@@ -49,7 +48,7 @@ def select_chat(bot, update, user_data):
         return
 
     user_data['title'] = text
-    user_data['owner_user_id'] = update.effective_user.id
+    user_data['owner_id'] = update.effective_user.id
 
     markup = InlineKeyboardMarkup(
         [[InlineKeyboardButton(text=chat_name, callback_data=f"chat_id:{chat_id}")]
@@ -74,22 +73,20 @@ def select_user(bot, message, user_data):
 def add_task(bot, message, user_data):
     user_id = user_data['user_id']
     user_name = bot.getChatMember(message.chat.id, user_id).user.name
-    if user_id not in state['tasks']:
-        state['tasks'][user_id] = []
+    task_service.add_task(user_data)
     # TODO: append if exists
-    state['tasks'][user_id].append(user_data.copy())
     message.reply_text(
         f"I burdened {user_name} with your request to {user_data['title']}.",
         quote=False)
-    owner_user_name = bot.getChatMember(message.chat.id, user_data['owner_user_id']).user.name
+    owner_user_name = bot.getChatMember(message.chat.id, user_data['owner_id']).user.name
     bot.send_message(user_data['chat_id'], f"{owner_user_name} loaded {user_data['title']} on {user_name}'s back.")
 
 
 def show_tasks(bot, update, user_data):
     user_id = update.effective_user.id
-    tasks = [f"{bot.getChat(task['chat_id']).title}: {task['title']} from "
-             f"{bot.getChatMember(update.message.chat.id, task['user_id']).user.name}"
-             for task in state['tasks'][user_id]]
+    tasks = [f"{bot.getChat(task.chat_id).title}: {task.title} from "
+             f"{bot.getChatMember(update.message.chat.id, task.user_id).user.name}"
+             for task in task_service.get_tasks(user_id)]
     update.message.reply_text("\n".join(tasks))
 
 
@@ -108,26 +105,23 @@ def new_chat_member(bot, update):
         register_user(chat_id, member, update)
     if len(update.message.new_chat_members) < 1:
         register_user(chat_id, update.effective_user, update)
-# TODO: if it is the bot itself, send greeting and instructions (existing users need to say hello)
+    # TODO: if it is the bot itself, send greeting and instructions (existing users need to say hello)
 
 
 def register_user(chat_id, member, update):
-    if chat_id not in state['users']:
-        state['users'][chat_id] = []
-    if member.id not in state['users'][chat_id]:
+    # TODO: only add if this is a group msesage!
+    if user_service.add_user_chat_if_not_exists(member.id, chat_id):
         update.message.reply_text(
             f"Welcome in the {update.message.chat.title}'s realm of productivity, "
             f"{member.first_name}! Use\n\n"
             f"/do [your task title] - to start distributing tasks to your helpful peers\n"
             f"/tasks - to list your duties")
-        state['users'][chat_id].append(member.id)
 
 
 def left_chat_member(bot, update):
     chat_id = update.message.chat_id
     user_id = update.message.left_chat_member.id
-    if chat_id in state['users'] and user_id in state['users'][chat_id]:
-        state['users'][chat_id].remove(user_id)
+    if user_service.remove_user_chat_if_exists(user_id, chat_id):
         update.message.reply_text(
             f"Farewell, my dear little exhausted busy bee {update.left_chat_member.first_name}!")
 
