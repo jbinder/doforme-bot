@@ -14,7 +14,7 @@ texts = {'help': "Use\n"
                  f"/do [your task title] - to start distributing tasks to your helpful peers\n"
                  f"/tasks - to list your duties\n"
                  f"/help - to show this info\n"
-                 f"Note: the do-command only work in the private chat with the bot, not in groups!"}
+                 f"Note: the do/tasks-commands only work in the private chat with the bot, not in groups!"}
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 
@@ -42,8 +42,7 @@ def get_chats(bot, user_id):
 
 
 def select_chat(bot, update, user_data):
-    if update.message.chat.type != 'private':
-        update.message.reply_text(f"Please switch to the private chat with @{bot_name} and write your commands there!")
+    if not assure_private_chat(update):
         return
 
     text = update.message.text[len("/do"):].strip()
@@ -82,18 +81,26 @@ def add_task(bot, message, user_data):
     task_service.add_task(user_data)
     # TODO: append if exists
     message.reply_text(
-        f"I burdened {user_name} with your request to {user_data['title']}.",
+        f"I burdened @{user_name} with your request to {user_data['title']}.",
         quote=False)
     owner_user_name = bot.getChatMember(message.chat.id, user_data['owner_id']).user.name
-    bot.send_message(chat_id, f"{owner_user_name} loaded {user_data['title']} on {user_name}'s back.")
+    bot.send_message(chat_id, f"@{owner_user_name} loaded {user_data['title']} on @{user_name}'s back.")
 
 
 def show_tasks(bot, update, user_data):
+    if not assure_private_chat(update):
+        return
     user_id = update.effective_user.id
-    tasks = [f"{bot.getChat(task.chat_id).title}: {task.title} from "
-             f"{bot.getChatMember(task.chat_id, task.owner_id).user.name}"
-             for task in task_service.get_tasks(user_id)]
-    update.message.reply_text("\n".join(tasks))
+    tasks = task_service.get_tasks(user_id)
+    task_rows = [f"{bot.getChat(task.chat_id).title}: {task.title} from "
+                 f"{bot.getChatMember(task.chat_id, task.owner_id).user.name} - "
+                 f"{'OPEN' if not task.done else 'DONE'}"
+                 for task in tasks]
+    markup = InlineKeyboardMarkup(
+        [[InlineKeyboardButton(text=f"Complete {task.title}", callback_data=f"complete:{task.id}")]
+         for task in tasks if not task.done],
+        one_time_keyboard=True)
+    update.message.reply_text("\n".join(task_rows), reply_markup=markup)
 
 
 def show_help(bot, update):
@@ -102,6 +109,13 @@ def show_help(bot, update):
 
 # def shrug(bot, update, user_data):
 #     update.message.reply_text("¯\_(ツ)_/¯")
+
+
+def assure_private_chat(update):
+    if update.message.chat.type != 'private':
+        update.message.reply_text(f"Please switch to the private chat with @{bot_name} and write your commands there!")
+        return False
+    return True
 
 
 def error_handler(bot, update, error):
@@ -143,14 +157,29 @@ def left_chat_member(bot, update):
 
 def callback(bot, update, user_data):
     data = update.callback_query.data.split(":")
-    user_data[data[0]] = int(data[1])
-    if "user_id" not in user_data:
-        select_user(bot, update.callback_query.message, user_data)
+    if data[0] == "complete":
+        task = task_service.get_task(data[1])
+        task_service.complete_task(data[1])
+        owner_name = get_mention(bot, task.chat_id, task.owner_id)
+        user_name = get_mention(bot, task.chat_id, task.user_id)
+        update.callback_query.message.reply_text(
+            f"I released you from the task {task.title}.",
+            quote=False)
+        bot.send_message(task.chat_id, f"{owner_name}: {user_name} completed {task.title}!", parse_mode="Markdown")
     else:
-        add_task(bot, update.callback_query.message, user_data)
-        user_data.clear()
+        user_data[data[0]] = int(data[1])
+        if "user_id" not in user_data:
+            select_user(bot, update.callback_query.message, user_data)
+        else:
+            add_task(bot, update.callback_query.message, user_data)
+            user_data.clear()
 
     update.callback_query.answer()
+
+
+def get_mention(bot, chat_id, user_id):
+    user_name = bot.getChatMember(chat_id, user_id).user.name
+    return f"[{user_name}](tg://user?id={user_id})"
 
 
 # def inline_caps(bot, update, chat_data, user_data, update_queue):
