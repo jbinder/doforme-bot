@@ -10,6 +10,11 @@ from services.task_service import TaskService
 from services.user_service import UserService
 
 bot_name = "DoForMeBot"
+texts = {'help': "Use\n"
+                 f"/do [your task title] - to start distributing tasks to your helpful peers\n"
+                 f"/tasks - to list your duties\n"
+                 f"/help - to show this info\n"
+                 f"Note: the do-command only work in the private chat with the bot, not in groups!"}
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 
@@ -38,7 +43,7 @@ def get_chats(bot, user_id):
 
 def select_chat(bot, update, user_data):
     if update.message.chat.type != 'private':
-        update.message.reply_text(f"Please write your task directly to @{bot_name}!")
+        update.message.reply_text(f"Please switch to the private chat with @{bot_name} and write your commands there!")
         return
 
     text = update.message.text[len("/do"):].strip()
@@ -72,22 +77,27 @@ def select_user(bot, message, user_data):
 
 def add_task(bot, message, user_data):
     user_id = user_data['user_id']
-    user_name = bot.getChatMember(message.chat.id, user_id).user.name
+    chat_id = user_data['chat_id']
+    user_name = bot.getChatMember(chat_id, user_id).user.name
     task_service.add_task(user_data)
     # TODO: append if exists
     message.reply_text(
         f"I burdened {user_name} with your request to {user_data['title']}.",
         quote=False)
     owner_user_name = bot.getChatMember(message.chat.id, user_data['owner_id']).user.name
-    bot.send_message(user_data['chat_id'], f"{owner_user_name} loaded {user_data['title']} on {user_name}'s back.")
+    bot.send_message(chat_id, f"{owner_user_name} loaded {user_data['title']} on {user_name}'s back.")
 
 
 def show_tasks(bot, update, user_data):
     user_id = update.effective_user.id
     tasks = [f"{bot.getChat(task.chat_id).title}: {task.title} from "
-             f"{bot.getChatMember(update.message.chat.id, task.user_id).user.name}"
+             f"{bot.getChatMember(task.chat_id, task.owner_id).user.name}"
              for task in task_service.get_tasks(user_id)]
     update.message.reply_text("\n".join(tasks))
+
+
+def show_help(bot, update):
+    update.message.reply_text(texts['help'])
 
 
 # def shrug(bot, update, user_data):
@@ -103,9 +113,15 @@ def new_chat_member(bot, update):
     chat_id = update.message.chat.id
     for member in update.message.new_chat_members:
         register_user(chat_id, member, update)
+        # TODO: if it is the bot itself, send greeting and instructions (existing users need to say hello)
     if len(update.message.new_chat_members) < 1:
-        register_user(chat_id, update.effective_user, update)
-    # TODO: if it is the bot itself, send greeting and instructions (existing users need to say hello)
+        if update.effective_chat.type == "private":
+            if len(get_chats(bot, update.effective_user.id)) < 1:
+                update.message.reply_text("Please add the bot to a group to get started!")
+            else:
+                update.message.reply_text(texts['help'])
+        else:
+            register_user(chat_id, update.effective_user, update)
 
 
 def register_user(chat_id, member, update):
@@ -113,17 +129,16 @@ def register_user(chat_id, member, update):
     if user_service.add_user_chat_if_not_exists(member.id, chat_id):
         update.message.reply_text(
             f"Welcome in the {update.message.chat.title}'s realm of productivity, "
-            f"{member.first_name}! Use\n\n"
-            f"/do [your task title] - to start distributing tasks to your helpful peers\n"
-            f"/tasks - to list your duties")
+            f"{member.first_name}!\n\n" + texts['help'])
 
 
 def left_chat_member(bot, update):
     chat_id = update.message.chat_id
     user_id = update.message.left_chat_member.id
+    # TODO: delete tasks?
     if user_service.remove_user_chat_if_exists(user_id, chat_id):
         update.message.reply_text(
-            f"Farewell, my dear little exhausted busy bee {update.left_chat_member.first_name}!")
+            f"Farewell, my dear little exhausted busy bee {update.message.left_chat_member.first_name}!")
 
 
 def callback(bot, update, user_data):
@@ -169,6 +184,7 @@ def main():
     # dp.add_handler(conv_handler)
     dp.add_handler(CommandHandler('do', select_chat, pass_user_data=True))
     dp.add_handler(CommandHandler('tasks', show_tasks, pass_user_data=True))
+    dp.add_handler(CommandHandler('help', show_help))
     dp.add_handler(MessageHandler(Filters.status_update.new_chat_members, new_chat_member))
     dp.add_handler(MessageHandler(Filters.status_update.left_chat_member, left_chat_member))
     dp.add_handler(CallbackQueryHandler(callback, pass_user_data=True))
