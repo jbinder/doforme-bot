@@ -1,6 +1,7 @@
 import argparse
 import logging
 
+import telegram
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, \
     CallbackQueryHandler
@@ -77,14 +78,17 @@ def select_user(bot, message, user_data):
 def add_task(bot, message, user_data):
     user_id = user_data['user_id']
     chat_id = user_data['chat_id']
-    user_name = bot.getChatMember(chat_id, user_id).user.name
+    user_name = get_mention(bot, chat_id, user_id)
     task_service.add_task(user_data)
     # TODO: append if exists
     message.reply_text(
-        f"I burdened @{user_name} with your request to {user_data['title']}.",
-        quote=False)
-    owner_user_name = bot.getChatMember(message.chat.id, user_data['owner_id']).user.name
-    bot.send_message(chat_id, f"@{owner_user_name} loaded {user_data['title']} on @{user_name}'s back.")
+        f"I burdened {user_name} with your request to {user_data['title']}.",
+        quote=False, parse_mode=telegram.ParseMode.MARKDOWN)
+    owner_user_name = get_mention(bot, message.chat.id, user_data['owner_id'])
+    bot.send_message(
+        chat_id,
+        f"{owner_user_name} loaded {user_data['title']} on {user_name}'s back.",
+        parse_mode=telegram.ParseMode.MARKDOWN)
 
 
 def show_tasks(bot, update, user_data):
@@ -165,7 +169,10 @@ def callback(bot, update, user_data):
         update.callback_query.message.reply_text(
             f"I released you from the task {task.title}.",
             quote=False)
-        bot.send_message(task.chat_id, f"{owner_name}: {user_name} completed {task.title}!", parse_mode="Markdown")
+        bot.send_message(
+            task.chat_id,
+            f"{owner_name}: {user_name} completed {task.title}!",
+            parse_mode=telegram.ParseMode.MARKDOWN)
     else:
         user_data[data[0]] = int(data[1])
         if "user_id" not in user_data:
