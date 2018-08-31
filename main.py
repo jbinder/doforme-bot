@@ -101,10 +101,10 @@ def show_tasks(bot, update):
     if not assure_private_chat(update):
         return
     user_id = update.effective_user.id
+    task_summary = get_task_summary(bot, user_id)
     tasks = task_service.get_tasks(user_id)
-    task_list = to_task_list(bot, tasks)
     markup = get_tasks_markup(tasks)
-    update.message.reply_text("\n".join(task_list), reply_markup=markup)
+    update.message.reply_text(task_summary, reply_markup=markup)
 
 
 # def set_reminder(bot, update):
@@ -128,11 +128,24 @@ def get_tasks_markup(tasks):
         one_time_keyboard=True)
 
 
-def to_task_list(bot, tasks):
-    return [f"{bot.getChat(task.chat_id).title}: {task.title} from "
-            f"{bot.getChatMember(task.chat_id, task.owner_id).user.name} - "
-            f"{'OPEN' if not task.done else 'DONE'}"
-            for task in tasks]
+def get_task_summary(bot, user_id):
+    due_past = task_service.get_due_past(user_id)
+    due_today = task_service.get_due_today(user_id)
+    due_this_week = task_service.get_due_this_week(user_id)
+    due_later_than_this_week = task_service.get_due_later_than_this_week(user_id)
+    due_undefined = task_service.get_due_undefined(user_id)
+    summary = (f"Overdue!!!!:\n{to_task_list(bot, due_past)}\n\n" if due_past else "") + \
+              (f"Due today:\n{to_task_list(bot, due_today)}\n\n" if due_today else "") + \
+              (f"This week:\n{to_task_list(bot, due_this_week)}\n\n" if due_this_week else "") + \
+              (f"Later:\n{to_task_list(bot, due_later_than_this_week)}\n\n" if due_later_than_this_week else "") + \
+              (f"Undefined:\n{to_task_list(bot, due_undefined)}\n\n" if due_undefined else "")
+    return summary
+
+
+def to_task_list(bot, due_tasks):
+    return "\n".join([f"๏ {bot.getChat(task.chat_id).title}: {task.title} from "
+                      f"{bot.getChatMember(task.chat_id, task.owner_id).user.name}"
+                      for task in due_tasks])
 
 
 def assure_private_chat(update):
@@ -199,6 +212,9 @@ def callback(bot, update, user_data):
             select_user(bot, update.callback_query.message, user_data)
         elif "due" not in user_data:
             select_due(bot, update.callback_query.message, user_data)
+        else:
+            user_data.clear()
+            raise RuntimeError("Invalid state, clearing input.")
     else:
         selected, date = telegramcalendar.process_calendar_selection(bot, update)
         if selected:
@@ -207,16 +223,15 @@ def callback(bot, update, user_data):
             # bot.send_message(chat_id=update.callback_query.from_user.id,
             #                  text="You selected %s" % (date.strftime("%d/%m/%Y")),
             #                  reply_markup=ReplyKeyboardRemove())
-            # user_data.clear()
+            user_data.clear()
 
     update.callback_query.answer()
 
 
 def show_all_task_overviews(bot, update):
     for user_id in user_service.get_all_users():
-        tasks = [task for task in task_service.get_tasks(user_id) if not task.done]
-        task_list = to_task_list(bot, tasks)
-        bot.send_message(user_id, "\n".join(task_list))
+        task_summary = get_task_summary(bot, user_id)
+        bot.send_message(user_id, task_summary)
 
 
 def get_mention(bot, chat_id, user_id):

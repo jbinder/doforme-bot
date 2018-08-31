@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from pony.orm import db_session, commit, select
 
@@ -23,6 +23,42 @@ class TaskService:
         return select(task for task in Task if task.user_id == user_id)[:]
 
     @db_session
+    def get_due_today(self, user_id):
+        # noinspection PyTypeChecker
+        return select(task for task in Task
+                      if (task.user_id == user_id) and (not task.done) and (task.due.date() == datetime.today().date())
+                      ).order_by(lambda t: t.due)[:]
+
+    @db_session
+    def get_due_this_week(self, user_id):
+        # noinspection PyTypeChecker
+        return select(task for task in Task
+                      if (task.user_id == user_id) and (not task.done) and (task.due.date() > datetime.today().date()) and
+                      (task.due.date() <= datetime.today() + timedelta(days=7))
+                      ).order_by(lambda t: t.due)[:]
+
+    @db_session
+    def get_due_later_than_this_week(self, user_id):
+        # noinspection PyTypeChecker
+        return select(task for task in Task
+                      if (task.user_id == user_id) and (not task.done) and (task.due.date() > datetime.today().date() + timedelta(days=7))
+                      ).order_by(lambda t: t.due)[:]
+
+    @db_session
+    def get_due_past(self, user_id):
+        # noinspection PyTypeChecker
+        return select(task for task in Task
+                      if (task.user_id == user_id) and (not task.done) and (task.due.date() < datetime.today().date())
+                      ).order_by(lambda t: t.due)[:]
+
+    @db_session
+    def get_due_undefined(self, user_id):
+        # noinspection PyTypeChecker
+        return select(task for task in Task
+                      if (task.user_id == user_id) and (not task.done) and (not task.due)
+                      ).order_by(lambda t: t.due)[:]
+
+    @db_session
     def complete_task(self, task_id):
         Task[task_id].done = datetime.utcnow()
         commit()
@@ -30,4 +66,3 @@ class TaskService:
     @db_session
     def get_task(self, task_id):
         return Task[task_id]
-
