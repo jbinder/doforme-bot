@@ -2,11 +2,12 @@ import argparse
 import logging
 
 import telegram
-from telegram import InlineKeyboardMarkup, InlineKeyboardButton
+from telegram import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, \
     CallbackQueryHandler
 
 # USER = range(1)
+from libraries.telegramcalendar import telegramcalendar
 from services.task_service import TaskService
 from services.user_service import UserService
 
@@ -73,6 +74,11 @@ def select_user(bot, message, user_data):
         f"Whom do you want to enslave doing {user_data['title']} for you, {message.chat.first_name}?\n"
         f"Select below!",
         reply_markup=markup, quote=False)
+
+
+def select_due(bot, message, user_data):
+    message.reply_text("Select a due date! ",
+                        reply_markup=telegramcalendar.create_calendar())
 
 
 def add_task(bot, message, user_data):
@@ -187,13 +193,21 @@ def callback(bot, update, user_data):
             task.chat_id,
             f"{owner_name}: {user_name} completed {task.title}!",
             parse_mode=telegram.ParseMode.MARKDOWN)
-    else:
+    elif len(data) > 1:
         user_data[data[0]] = int(data[1])
         if "user_id" not in user_data:
             select_user(bot, update.callback_query.message, user_data)
-        else:
+        elif "due" not in user_data:
+            select_due(bot, update.callback_query.message, user_data)
+    else:
+        selected, date = telegramcalendar.process_calendar_selection(bot, update)
+        if selected:
+            user_data['due'] = date
             add_task(bot, update.callback_query.message, user_data)
-            user_data.clear()
+            # bot.send_message(chat_id=update.callback_query.from_user.id,
+            #                  text="You selected %s" % (date.strftime("%d/%m/%Y")),
+            #                  reply_markup=ReplyKeyboardRemove())
+            # user_data.clear()
 
     update.callback_query.answer()
 

@@ -24,3 +24,9 @@ Install
 -------
 
 pip install -r requirements.txt
+
+
+Libraries
+---------
+
+* https://github.com/grcanosa/telegram-calendar-keyboard

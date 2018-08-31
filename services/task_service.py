@@ -13,7 +13,8 @@ class TaskService:
             chat_id=data['chat_id'],
             owner_id=data['owner_id'],
             title=data['title'],
-            created=datetime.utcnow())
+            created=datetime.utcnow(),
+            due=data['due'])
         commit()
 
     @db_session
