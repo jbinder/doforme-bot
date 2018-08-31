@@ -10,6 +10,11 @@ class UserChat(db.Entity):
     chat_id = Required(int)
 
 
+# class UserSchedule(db.Entity):
+#     user_id = Required(int)
+#     chat_id = Required(int)
+
+
 class Task(db.Entity):
     user_id = Required(int)
     chat_id = Required(int)

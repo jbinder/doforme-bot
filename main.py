@@ -91,20 +91,21 @@ def add_task(bot, message, user_data):
         parse_mode=telegram.ParseMode.MARKDOWN)
 
 
-def show_tasks(bot, update, user_data):
+def show_tasks(bot, update):
     if not assure_private_chat(update):
         return
     user_id = update.effective_user.id
     tasks = task_service.get_tasks(user_id)
-    task_rows = [f"{bot.getChat(task.chat_id).title}: {task.title} from "
-                 f"{bot.getChatMember(task.chat_id, task.owner_id).user.name} - "
-                 f"{'OPEN' if not task.done else 'DONE'}"
-                 for task in tasks]
-    markup = InlineKeyboardMarkup(
-        [[InlineKeyboardButton(text=f"Complete {task.title}", callback_data=f"complete:{task.id}")]
-         for task in tasks if not task.done],
-        one_time_keyboard=True)
-    update.message.reply_text("\n".join(task_rows), reply_markup=markup)
+    task_list = to_task_list(bot, tasks)
+    markup = get_tasks_markup(tasks)
+    update.message.reply_text("\n".join(task_list), reply_markup=markup)
+
+
+# def set_reminder(bot, update):
+#     if not assure_private_chat(update):
+#         return
+#     user_service.add_user_schedule_if_not_exists(update.effective_user.id, update.message.chat.id)
+#     update.message.reply_text("You will now receive a daily overview of due tasks.")
 
 
 def show_help(bot, update):
@@ -113,6 +114,19 @@ def show_help(bot, update):
 
 # def shrug(bot, update, user_data):
 #     update.message.reply_text("¯\_(ツ)_/¯")
+
+def get_tasks_markup(tasks):
+    return InlineKeyboardMarkup(
+        [[InlineKeyboardButton(text=f"Complete {task.title}", callback_data=f"complete:{task.id}")]
+         for task in tasks if not task.done],
+        one_time_keyboard=True)
+
+
+def to_task_list(bot, tasks):
+    return [f"{bot.getChat(task.chat_id).title}: {task.title} from "
+            f"{bot.getChatMember(task.chat_id, task.owner_id).user.name} - "
+            f"{'OPEN' if not task.done else 'DONE'}"
+            for task in tasks]
 
 
 def assure_private_chat(update):
@@ -184,6 +198,13 @@ def callback(bot, update, user_data):
     update.callback_query.answer()
 
 
+def show_all_task_overviews(bot, update):
+    for user_id in user_service.get_all_users():
+        tasks = [task for task in task_service.get_tasks(user_id) if not task.done]
+        task_list = to_task_list(bot, tasks)
+        bot.send_message(user_id, "\n".join(task_list))
+
+
 def get_mention(bot, chat_id, user_id):
     user_name = bot.getChatMember(chat_id, user_id).user.name
     return f"[{user_name}](tg://user?id={user_id})"
@@ -219,13 +240,16 @@ def main():
     # )
     # dp.add_handler(conv_handler)
     dp.add_handler(CommandHandler('do', select_chat, pass_user_data=True))
-    dp.add_handler(CommandHandler('tasks', show_tasks, pass_user_data=True))
+    dp.add_handler(CommandHandler('tasks', show_tasks))
+    # dp.add_handler(CommandHandler('reminder', set_reminder))
     dp.add_handler(CommandHandler('help', show_help))
     dp.add_handler(MessageHandler(Filters.status_update.new_chat_members, new_chat_member))
     dp.add_handler(MessageHandler(Filters.status_update.left_chat_member, left_chat_member))
     dp.add_handler(CallbackQueryHandler(callback, pass_user_data=True))
 
     dp.add_handler(MessageHandler(Filters.text, new_chat_member))
+
+    dp.job_queue.run_repeating(show_all_task_overviews, interval=60, first=0)
 
     # inline_caps_handler = InlineQueryHandler(inline_caps, pass_chat_data=True, pass_user_data=True, pass_update_queue=True)
     # dp.add_handler(inline_caps_handler)
