@@ -16,7 +16,12 @@ texts = {'help': "Use\n"
                  f"/do [your task title] - to start distributing tasks to your helpful peers\n"
                  f"/tasks - to list your duties\n"
                  f"/help - to show this info\n"
-                 f"Note: the do/tasks-commands only work in the private chat with the bot, not in groups!"}
+                 f"Note: talk to the bot in the private chat with the bot, not in groups!\n"
+                 f"WARNING: This bot is not fully grown up, it might forget data, be asleep, confuse data, etc.\n"
+                 f"Please find the doforme-bot on GitHub to report any issues, thanks a lot!",
+         'add-to-group': "Please add the bot to a group to get started!",
+         'welcome-bot': "Hi all! Please say hi to me so I am able to let others assign task to you!"
+         }
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 
@@ -44,6 +49,8 @@ def get_chats(bot, user_id):
 
 
 def select_chat(bot, update, user_data):
+    user_data.clear()
+
     if not assure_private_chat(update):
         return
 
@@ -52,13 +59,17 @@ def select_chat(bot, update, user_data):
         update.message.reply_text(
             f"Please include a task title, {update.effective_user.first_name}!\n")
         return
+    chats = get_chats(bot, update.effective_user.id)
+    if len(chats) < 1:
+        update.message.reply_text(texts['add-to-group']);
+        return
 
     user_data['title'] = text
     user_data['owner_id'] = update.effective_user.id
 
     markup = InlineKeyboardMarkup(
         [[InlineKeyboardButton(text=chat_name, callback_data=f"chat_id:{chat_id}")]
-         for (chat_id, chat_name) in get_chats(bot, update.effective_user.id)])
+         for (chat_id, chat_name) in chats])
     update.message.reply_text(
         f"Which is the place of power?\n"
         f"Select below!",
@@ -78,7 +89,7 @@ def select_user(bot, message, user_data):
 
 def select_due(bot, message, user_data):
     message.reply_text("Select a due date! ",
-                        reply_markup=telegramcalendar.create_calendar())
+                       reply_markup=telegramcalendar.create_calendar())
 
 
 def add_task(bot, message, user_data):
@@ -163,12 +174,14 @@ def error_handler(bot, update, error):
 def new_chat_member(bot, update):
     chat_id = update.message.chat.id
     for member in update.message.new_chat_members:
-        register_user(chat_id, member, update)
-        # TODO: if it is the bot itself, send greeting and instructions (existing users need to say hello)
+        if not member.is_bot:
+            register_user(chat_id, member, update)
+        if member.username == 'DoForMeBot':
+            update.message.reply_text(texts['welcome-bot'])
     if len(update.message.new_chat_members) < 1:
         if update.effective_chat.type == "private":
             if len(get_chats(bot, update.effective_user.id)) < 1:
-                update.message.reply_text("Please add the bot to a group to get started!")
+                update.message.reply_text(texts['add-to-group'])
             else:
                 update.message.reply_text(texts['help'])
         else:
@@ -186,8 +199,9 @@ def register_user(chat_id, member, update):
 def left_chat_member(bot, update):
     chat_id = update.message.chat_id
     user_id = update.message.left_chat_member.id
-    # TODO: delete tasks?
     if user_service.remove_user_chat_if_exists(user_id, chat_id):
+        # TODO: show deleted tasks?
+        task_service.remove_tasks(user_id, chat_id)
         update.message.reply_text(
             f"Farewell, my dear little exhausted busy bee {update.message.left_chat_member.first_name}!")
 
@@ -231,7 +245,8 @@ def callback(bot, update, user_data):
 def show_all_task_overviews(bot, update):
     for user_id in user_service.get_all_users():
         task_summary = get_task_summary(bot, user_id)
-        bot.send_message(user_id, task_summary)
+        if len(task_summary) > 0:
+            bot.send_message(user_id, task_summary)
 
 
 def get_mention(bot, chat_id, user_id):
@@ -269,6 +284,7 @@ def main():
     # )
     # dp.add_handler(conv_handler)
     dp.add_handler(CommandHandler('do', select_chat, pass_user_data=True))
+    dp.add_handler(CommandHandler('start', show_help))
     dp.add_handler(CommandHandler('tasks', show_tasks))
     # dp.add_handler(CommandHandler('reminder', set_reminder))
     dp.add_handler(CommandHandler('help', show_help))
@@ -278,7 +294,7 @@ def main():
 
     dp.add_handler(MessageHandler(Filters.text, new_chat_member))
 
-    dp.job_queue.run_repeating(show_all_task_overviews, interval=60, first=0)
+    dp.job_queue.run_repeating(show_all_task_overviews, interval=60 * 60 * 4, first=0)
 
     # inline_caps_handler = InlineQueryHandler(inline_caps, pass_chat_data=True, pass_user_data=True, pass_update_queue=True)
     # dp.add_handler(inline_caps_handler)

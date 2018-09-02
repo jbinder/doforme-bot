@@ -66,3 +66,12 @@ class TaskService:
     @db_session
     def get_task(self, task_id):
         return Task[task_id]
+
+    @db_session
+    def remove_tasks(self, user_id, chat_id):
+        # noinspection PyTypeChecker
+        tasks = select(task for task in Task if task.user_id == user_id and task.chat_id == chat_id)[:]
+        for task in tasks:
+            task.delete()
+            commit()
+
