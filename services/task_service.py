@@ -20,7 +20,7 @@ class TaskService:
     @db_session
     def get_tasks(self, user_id):
         # noinspection PyTypeChecker
-        return select(task for task in Task if task.user_id == user_id)[:]
+        return select(task for task in Task if task.user_id == user_id).order_by(lambda t: t.due)[:]
 
     @db_session
     def get_due_today(self, user_id):

@@ -111,10 +111,14 @@ def show_tasks(bot, update):
     if not assure_private_chat(update):
         return
     user_id = update.effective_user.id
-    task_summary = get_task_summary(bot, user_id)
     tasks = task_service.get_tasks(user_id)
-    markup = get_tasks_markup(tasks)
-    if len(task_summary) > 0:
+    for task in tasks:
+        if task.done:
+            continue
+        task_summary = (f"{task.due.date()} - " if task.due else "") + \
+                       f"{bot.getChat(task.chat_id).title} - {task.title} (" + \
+                       f"{bot.getChatMember(task.chat_id, task.owner_id).user.name})"
+        markup = get_task_markup(task)
         update.message.reply_text(task_summary, reply_markup=markup)
 
 
@@ -132,10 +136,10 @@ def show_help(bot, update):
 # def shrug(bot, update, user_data):
 #     update.message.reply_text("¯\_(ツ)_/¯")
 
-def get_tasks_markup(tasks):
+
+def get_task_markup(task):
     return InlineKeyboardMarkup(
-        [[InlineKeyboardButton(text=f"Complete {task.title}", callback_data=f"complete:{task.id}")]
-         for task in tasks if not task.done],
+        [[InlineKeyboardButton(text=f"Complete {task.title}", callback_data=f"complete:{task.id}")]],
         one_time_keyboard=True)
 
 
@@ -244,9 +248,9 @@ def callback(bot, update, user_data):
 
 def show_all_task_overviews(bot, update):
     for user_id in user_service.get_all_users():
-        task_summary = get_task_summary(bot, user_id)
-        if len(task_summary) > 0:
-            bot.send_message(user_id, task_summary)
+        tasks_summary = get_task_summary(bot, user_id)
+        if len(tasks_summary) > 0:
+            bot.send_message(user_id, tasks_summary)
 
 
 def get_mention(bot, chat_id, user_id):
