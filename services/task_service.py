@@ -60,8 +60,12 @@ class TaskService:
 
     @db_session
     def complete_task(self, task_id):
-        Task[task_id].done = datetime.utcnow()
-        commit()
+        """ :returns True if completed, False if has been completed already """
+        if not Task[task_id].done:
+            Task[task_id].done = datetime.utcnow()
+            commit()
+            return True
+        return False
 
     @db_session
     def get_task(self, task_id):

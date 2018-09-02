@@ -6,7 +6,6 @@ from telegram import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRe
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, \
     CallbackQueryHandler
 
-# USER = range(1)
 from libraries.telegramcalendar import telegramcalendar
 from services.task_service import TaskService
 from services.user_service import UserService
@@ -55,9 +54,9 @@ def select_chat(bot, update, user_data):
         return
 
     text = update.message.text[len("/do"):].strip()
-    if text == "@DoForMeBot" or not text:
+    if text == f"@{bot_name}" or not text:
         update.message.reply_text(
-            f"Please include a task title, {update.effective_user.first_name}!\n")
+            f"Please include a task title, {update.effective_user.first_name}!")
         return
     chats = get_chats(bot, update.effective_user.id)
     if len(chats) < 1:
@@ -115,7 +114,8 @@ def show_tasks(bot, update):
     task_summary = get_task_summary(bot, user_id)
     tasks = task_service.get_tasks(user_id)
     markup = get_tasks_markup(tasks)
-    update.message.reply_text(task_summary, reply_markup=markup)
+    if len(task_summary) > 0:
+        update.message.reply_text(task_summary, reply_markup=markup)
 
 
 # def set_reminder(bot, update):
@@ -176,7 +176,7 @@ def new_chat_member(bot, update):
     for member in update.message.new_chat_members:
         if not member.is_bot:
             register_user(chat_id, member, update)
-        if member.username == 'DoForMeBot':
+        if member.username == bot_name:
             update.message.reply_text(texts['welcome-bot'])
     if len(update.message.new_chat_members) < 1:
         if update.effective_chat.type == "private":
@@ -210,16 +210,16 @@ def callback(bot, update, user_data):
     data = update.callback_query.data.split(":")
     if data[0] == "complete":
         task = task_service.get_task(data[1])
-        task_service.complete_task(data[1])
-        owner_name = get_mention(bot, task.chat_id, task.owner_id)
-        user_name = get_mention(bot, task.chat_id, task.user_id)
-        update.callback_query.message.reply_text(
-            f"I released you from the task {task.title}.",
-            quote=False)
-        bot.send_message(
-            task.chat_id,
-            f"{owner_name}: {user_name} completed {task.title}!",
-            parse_mode=telegram.ParseMode.MARKDOWN)
+        if task_service.complete_task(data[1]):
+            owner_name = get_mention(bot, task.chat_id, task.owner_id)
+            user_name = get_mention(bot, task.chat_id, task.user_id)
+            update.callback_query.message.reply_text(
+                f"I released you from the task {task.title}.",
+                quote=False)
+            bot.send_message(
+                task.chat_id,
+                f"{owner_name}: {user_name} completed {task.title}!",
+                parse_mode=telegram.ParseMode.MARKDOWN)
     elif len(data) > 1:
         user_data[data[0]] = int(data[1])
         if "user_id" not in user_data:
