@@ -26,14 +26,14 @@ class TaskService:
     def get_due_today(self, user_id):
         # noinspection PyTypeChecker
         return select(task for task in Task
-                      if (task.user_id == user_id) and (not task.done) and (task.due.date() == datetime.today().date())
+                      if (task.user_id == user_id) and (task.done is None) and (task.due.date() == datetime.today().date())
                       ).order_by(lambda t: t.due)[:]
 
     @db_session
     def get_due_this_week(self, user_id):
         # noinspection PyTypeChecker
         return select(task for task in Task
-                      if (task.user_id == user_id) and (not task.done) and (task.due.date() > datetime.today().date()) and
+                      if (task.user_id == user_id) and (task.done is None) and (task.due.date() > datetime.today().date()) and
                       (task.due.date() <= datetime.today() + timedelta(days=7))
                       ).order_by(lambda t: t.due)[:]
 
@@ -41,27 +41,27 @@ class TaskService:
     def get_due_later_than_this_week(self, user_id):
         # noinspection PyTypeChecker
         return select(task for task in Task
-                      if (task.user_id == user_id) and (not task.done) and (task.due.date() > datetime.today().date() + timedelta(days=7))
+                      if (task.user_id == user_id) and (task.done is None) and (task.due.date() > datetime.today().date() + timedelta(days=7))
                       ).order_by(lambda t: t.due)[:]
 
     @db_session
     def get_due_past(self, user_id):
         # noinspection PyTypeChecker
         return select(task for task in Task
-                      if (task.user_id == user_id) and (not task.done) and (task.due.date() < datetime.today().date())
+                      if (task.user_id == user_id) and (task.done is None) and (task.due.date() < datetime.today().date())
                       ).order_by(lambda t: t.due)[:]
 
     @db_session
     def get_due_undefined(self, user_id):
         # noinspection PyTypeChecker
         return select(task for task in Task
-                      if (task.user_id == user_id) and (not task.done) and (not task.due)
+                      if (task.user_id == user_id) and (task.done is None) and (task.due is None)
                       ).order_by(lambda t: t.due)[:]
 
     @db_session
     def complete_task(self, task_id):
         """ :returns True if completed, False if has been completed already """
-        if not Task[task_id].done:
+        if Task[task_id].done is None:
             Task[task_id].done = datetime.utcnow()
             commit()
             return True
