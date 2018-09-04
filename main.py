@@ -1,5 +1,6 @@
 import argparse
 import logging
+from datetime import time
 
 import telegram
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove
@@ -121,19 +122,21 @@ def get_task_markup(task):
         one_time_keyboard=True)
 
 
-def get_task_summary(bot, user_id):
+def get_task_summary(bot, user_id, show_future_tasks):
     due_past = task_service.get_due_past(user_id)
     due_today = task_service.get_due_today(user_id)
     due_this_week = task_service.get_due_this_week(user_id)
     due_later_than_this_week = task_service.get_due_later_than_this_week(user_id)
     due_undefined = task_service.get_due_undefined(user_id)
     summary = (f"{texts['summary-overdue']}:\n{to_task_list(bot, due_past)}\n\n" if due_past else "") + \
-              (f"{texts['summary-due-today']}:\n{to_task_list(bot, due_today)}\n\n" if due_today else "") + \
-              (f"{texts['summary-due-this-week']}:\n"
-               f"{to_task_list(bot, due_this_week)}\n\n" if due_this_week else "") + \
-              (f"{texts['summary-due-later']}:\n"
-               f"{to_task_list(bot, due_later_than_this_week)}\n\n" if due_later_than_this_week else "") + \
-              (f"{texts['summary-due-undefined']}:\n{to_task_list(bot, due_undefined)}\n\n" if due_undefined else "")
+              (f"{texts['summary-due-today']}:\n{to_task_list(bot, due_today)}\n\n" if due_today else "")
+    if show_future_tasks:
+        summary += (f"{texts['summary-due-this-week']}:\n" +
+                    f"{to_task_list(bot, due_this_week)}\n\n" if due_this_week else "") + \
+                   (f"{texts['summary-due-later']}:\n"
+                    f"{to_task_list(bot, due_later_than_this_week)}\n\n" if due_later_than_this_week else "") + \
+                   (f"{texts['summary-due-undefined']}:\n"
+                    f"{to_task_list(bot, due_undefined)}\n\n" if due_undefined else "")
     return summary
 
 
@@ -219,8 +222,16 @@ def callback(bot, update, user_data):
 
 
 def show_all_task_overviews(bot, update):
+    show_task_overviews(bot, True)
+
+
+def show_daily_task_overviews(bot, update):
+    show_task_overviews(bot, False)
+
+
+def show_task_overviews(bot, show_future_tasks):
     for user_id in user_service.get_all_users():
-        tasks_summary = get_task_summary(bot, user_id)
+        tasks_summary = get_task_summary(bot, user_id, show_future_tasks)
         if len(tasks_summary) > 0:
             bot.send_message(user_id, tasks_summary)
 
@@ -269,7 +280,9 @@ def main():
 
     dp.add_handler(MessageHandler(Filters.text, new_chat_member))
 
-    dp.job_queue.run_repeating(show_all_task_overviews, interval=60 * 60 * 4, first=0)
+    dp.job_queue.run_daily(show_all_task_overviews, time=time(hour=5, minute=0))
+    dp.job_queue.run_daily(show_daily_task_overviews, time=time(hour=11, minute=0))
+    dp.job_queue.run_daily(show_daily_task_overviews, time=time(hour=17, minute=0))
 
     # inline_caps_handler = InlineQueryHandler(inline_caps, pass_chat_data=True, pass_user_data=True, pass_update_queue=True)
     # dp.add_handler(inline_caps_handler)
