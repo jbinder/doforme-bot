@@ -8,6 +8,7 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, Callb
 
 from libraries.telegramcalendar import telegramcalendar
 from services.task_service import TaskService
+from services.telegram_service import TelegramService
 from services.user_service import UserService
 from texts import texts, bot_name
 
@@ -17,24 +18,13 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 logger = logging.getLogger(__name__)
 user_service = UserService()
 task_service = TaskService()
+telegram_service = TelegramService(user_service)
 
 
 def get_args():
     parser = argparse.ArgumentParser(description=f"Run the {bot_name} for Telegram.")
     parser.add_argument('-t', dest="token", required=True, help='Your Telegram API token')
     return parser.parse_args()
-
-
-def get_chat_users(bot, chat_id):
-    return [(user_id, bot.getChatMember(chat_id, user_id).user.name)
-            for user_id in user_service.get_chat_users(chat_id)]
-
-
-def get_chats(bot, user_id):
-    chats = []
-    for chat_id in user_service.get_chats_of_user(user_id):
-        chats.append((chat_id, bot.getChat(chat_id).title))
-    return chats
 
 
 def select_chat(bot, update, user_data):
@@ -47,7 +37,7 @@ def select_chat(bot, update, user_data):
     if text == f"@{bot_name}" or not text:
         update.message.reply_text(texts['missing-title'](update.effective_user.first_name))
         return
-    chats = get_chats(bot, update.effective_user.id)
+    chats = telegram_service.get_chats(bot, update.effective_user.id)
     if len(chats) < 1:
         update.message.reply_text(texts['add-to-group'])
         return
@@ -64,7 +54,7 @@ def select_chat(bot, update, user_data):
 def select_user(bot, message, user_data):
     markup = InlineKeyboardMarkup(
         [[InlineKeyboardButton(text=user_name, callback_data=f"user_id:{user_id}")]
-         for (user_id, user_name) in get_chat_users(bot, user_data['chat_id'])],
+         for (user_id, user_name) in telegram_service.get_chat_users(bot, user_data['chat_id'])],
         one_time_keyboard=True)
     message.reply_text(texts['select-user'](user_data['title'], message.chat.first_name),
                        reply_markup=markup, quote=False)
@@ -77,12 +67,12 @@ def select_due(bot, message, user_data):
 def add_task(bot, message, user_data):
     user_id = user_data['user_id']
     chat_id = user_data['chat_id']
-    user_name = get_mention(bot, chat_id, user_id)
+    user_name = telegram_service.get_mention(bot, chat_id, user_id)
     task_service.add_task(user_data)
     # TODO: append if exists
     message.reply_text(texts['added-task'](user_name, user_data['title']),
                        quote=False, parse_mode=telegram.ParseMode.MARKDOWN, reply_markup=ReplyKeyboardRemove())
-    owner_user_name = get_mention(bot, message.chat.id, user_data['owner_id'])
+    owner_user_name = telegram_service.get_mention(bot, message.chat.id, user_data['owner_id'])
     bot.send_message(chat_id, texts['added-task-to-group'](owner_user_name, user_name, user_data['title']),
                      parse_mode=telegram.ParseMode.MARKDOWN)
 
@@ -167,7 +157,7 @@ def new_chat_member(bot, update):
             update.message.reply_text(texts['welcome-bot'])
     if len(update.message.new_chat_members) < 1:
         if update.effective_chat.type == "private":
-            if len(get_chats(bot, update.effective_user.id)) < 1:
+            if len(telegram_service.get_chats(bot, update.effective_user.id)) < 1:
                 update.message.reply_text(texts['add-to-group'])
             else:
                 update.message.reply_text(texts['help'])
@@ -196,8 +186,8 @@ def callback(bot, update, user_data):
     if data[0] == "complete":
         task = task_service.get_task(data[1])
         if task_service.complete_task(data[1]):
-            owner_name = get_mention(bot, task.chat_id, task.owner_id)
-            user_name = get_mention(bot, task.chat_id, task.user_id)
+            owner_name = telegram_service.get_mention(bot, task.chat_id, task.owner_id)
+            user_name = telegram_service.get_mention(bot, task.chat_id, task.user_id)
             update.callback_query.message.reply_text(texts['task-done'](task.title), quote=False)
             bot.send_message(
                 task.chat_id, texts['task-done-to-group'](owner_name, user_name, task.title),
@@ -234,11 +224,6 @@ def show_task_overviews(bot, show_future_tasks):
         tasks_summary = get_task_summary(bot, user_id, show_future_tasks)
         if len(tasks_summary) > 0:
             bot.send_message(user_id, tasks_summary)
-
-
-def get_mention(bot, chat_id, user_id):
-    user_name = bot.getChatMember(chat_id, user_id).user.name
-    return f"[{user_name}](tg://user?id={user_id})"
 
 
 # def inline_caps(bot, update, chat_data, user_data, update_queue):
