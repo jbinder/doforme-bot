@@ -7,7 +7,8 @@ texts = {'help': "Use\n"
                  f"WARNING: This bot is not fully grown up, it might forget data, be asleep, confuse data, etc.\n"
                  f"Please find the doforme-bot on GitHub to report any issues, thanks a lot!",
          'add-to-group': "Please add the bot to a group to get started!",
-         'welcome-bot': "Hi all! Please say hi to me so I am able to let others assign task to you!",
+         'welcome-bot': "Hi all! Please say hi to me so I am able to let others assign task to you!"
+                        "Also, please make sure to add me to allow me to interact with you and vice versa.",
          'missing-title': lambda name: f"Please include a task title, {name}!",
          'select-chat': f"Which is the place of power?\nSelect below!",
          'select-user': lambda title, name: f"Whom do you want to enslave doing {title} for you, {name}?\n"
@@ -22,7 +23,7 @@ texts = {'help': "Use\n"
          'summary-due-this-week': "This week",
          'summary-due-later': "Later",
          'summary-due-undefined': "Undefined",
-         'task-line-summary': lambda task, chat_name, owner_name: (f"{task.due.date()} - " if task.due else "") + \
+         'task-line-summary': lambda task, chat_name, owner_name: (f"{task.due.date()} - " if task.due else "") +
                                                                   f"{chat_name} - {task.title} ({owner_name})",
          'task-line': lambda chat_title, title, owner_name: f"๏ {chat_title}: {title} from {owner_name}",
          'private-chat-required': f"Please switch to the private chat with @{bot_name} and write your commands there!",
