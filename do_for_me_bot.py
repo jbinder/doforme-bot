@@ -117,11 +117,14 @@ class DoForMeBot:
         if not self.telegram_service.is_private_chat(update):
             update.message.reply_text(self._get_chat_tasks(bot, update.effective_chat.id))
             return
+
         user_id = update.effective_user.id
-        tasks = self.task_service.get_tasks(user_id)
+        tasks = [task for task in self.task_service.get_tasks(user_id) if not task.done]
+        if len(tasks) < 1:
+            update.message.reply_text(self.texts['no-tasks'])
+            return
+
         for task in tasks:
-            if task.done:
-                continue
             task_summary = self.texts['task-line-summary'](task, bot.getChat(task.chat_id).title,
                                                            bot.getChatMember(task.chat_id, task.owner_id).user.name)
             markup = self._get_task_markup(task)
@@ -250,7 +253,10 @@ class DoForMeBot:
                 bot.send_message(chat_id, message)
 
     def _get_chat_tasks(self, bot, chat_id):
-        tasks = self.task_service.get_tasks_for_chat(chat_id)
+        tasks = [task for task in self.task_service.get_tasks_for_chat(chat_id) if not task.done]
+        if len(tasks) < 1:
+            return self.texts['no-tasks']
+
         return f"{self.texts['task-overview-group'](bot.getChat(chat_id).title)}:\n" \
                f"{self._to_group_task_list(bot, tasks)}\n\n" \
                f"{self.texts['task-overview-private-chat']}"
@@ -258,7 +264,7 @@ class DoForMeBot:
     def _to_group_task_list(self, bot, tasks):
         return "\n".join([self.texts['task-line-group'](task, bot.getChatMember(task.chat_id, task.user_id).user.name,
                                                         bot.getChatMember(task.chat_id, task.owner_id).user.name)
-                          for task in tasks if not task.done])
+                          for task in tasks])
 
     def _to_task_list(self, bot, due_tasks):
         return "\n".join([self.texts['task-line'](bot.getChat(task.chat_id).title, task.title,

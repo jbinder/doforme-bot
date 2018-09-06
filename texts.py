@@ -42,5 +42,6 @@ texts = {'help': "Use\n"
          'user-welcome': lambda chat_title, name: f"Welcome in the {chat_title}'s realm of productivity, {name}!",
          'user-goodbye': lambda name: f"Farewell, my dear little exhausted busy bee {name}!",
          'task-done': lambda title: f"I released you from the task {title}.",
-         'task-done-to-group': lambda owner_name, user_name, title: f"{owner_name}: {user_name} completed {title}!"
+         'task-done-to-group': lambda owner_name, user_name, title: f"{owner_name}: {user_name} completed {title}!",
+         'no-tasks': "Nothing to do right now, enjoy!"
          }
