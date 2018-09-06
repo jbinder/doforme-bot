@@ -26,6 +26,11 @@ texts = {'help': "Use\n"
          'task-line-summary': lambda task, chat_name, owner_name: (f"{task.due.date()} - " if task.due else "") +
                                                                   f"{chat_name} - {task.title} ({owner_name})",
          'task-line': lambda chat_title, title, owner_name: f"๏ {chat_title}: {title} from {owner_name}",
+         'task-line-group': lambda task, user_name, owner_name: f"๏ " + (f"{task.due.date()} - " if task.due else "") +
+                                                                f"{task.title} from {owner_name} for {user_name}",
+         'task-overview-group': lambda chat_title: f"Here are {chat_title}'s open tasks",
+         'task-overview-private-chat': f"Switch to the private chat with @{bot_name} "
+                                       f"to view all of your assigned tasks!",
          'private-chat-required': f"Please switch to the private chat with @{bot_name} and write your commands there!",
          'user-welcome': lambda chat_title, name: f"Welcome in the {chat_title}'s realm of productivity, {name}!",
          'user-goodbye': lambda name: f"Farewell, my dear little exhausted busy bee {name}!",

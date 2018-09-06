@@ -110,7 +110,8 @@ class DoForMeBot:
                          parse_mode=telegram.ParseMode.MARKDOWN)
 
     def _tasks_show(self, bot, update):
-        if not self._assure_private_chat(update):
+        if not self.telegram_service.is_private_chat(update):
+            update.message.reply_text(self._get_chat_tasks(bot, update.effective_chat.id))
             return
         user_id = update.effective_user.id
         tasks = self.task_service.get_tasks(user_id)
@@ -191,7 +192,7 @@ class DoForMeBot:
                                       "\n\n" + self.texts['help'])
 
     def _assure_private_chat(self, update):
-        if update.message.chat.type != 'private':
+        if not self.telegram_service.is_private_chat(update):
             update.message.reply_text(self.texts['private-chat-required'])
             return False
         return True
@@ -213,19 +214,30 @@ class DoForMeBot:
         due_this_week = self.task_service.get_due_this_week(user_id)
         due_later_than_this_week = self.task_service.get_due_later_than_this_week(user_id)
         due_undefined = self.task_service.get_due_undefined(user_id)
-        summary = (f"{self.texts['summary-overdue']}:\n{self.to_task_list(bot, due_past)}\n\n" if due_past else "") + \
-                  (f"{self.texts['summary-due-today']}:\n{self.to_task_list(bot, due_today)}\n\n" if due_today else "")
+        summary = (f"{self.texts['summary-overdue']}:\n{self._to_task_list(bot, due_past)}\n\n" if due_past else "") + \
+                  (f"{self.texts['summary-due-today']}:\n{self._to_task_list(bot, due_today)}\n\n" if due_today else "")
         if show_future_tasks:
             summary += (f"{self.texts['summary-due-this-week']}:\n" +
-                        f"{self.to_task_list(bot, due_this_week)}\n\n" if due_this_week else "") + \
+                        f"{self._to_task_list(bot, due_this_week)}\n\n" if due_this_week else "") + \
                        (f"{self.texts['summary-due-later']}:\n"
-                        f"{self.to_task_list(bot, due_later_than_this_week)}\n\n"
+                        f"{self._to_task_list(bot, due_later_than_this_week)}\n\n"
                         if due_later_than_this_week else "") + \
                        (f"{self.texts['summary-due-undefined']}:\n"
-                        f"{self.to_task_list(bot, due_undefined)}\n\n" if due_undefined else "")
+                        f"{self._to_task_list(bot, due_undefined)}\n\n" if due_undefined else "")
         return summary
 
-    def to_task_list(self, bot, due_tasks):
+    def _get_chat_tasks(self, bot, chat_id):
+        tasks = self.task_service.get_tasks_for_chat(chat_id)
+        return f"{self.texts['task-overview-group'](bot.getChat(chat_id).title)}:\n" \
+               f"{self._to_group_task_list(bot, tasks)}\n\n" \
+               f"{self.texts['task-overview-private-chat']}"
+
+    def _to_group_task_list(self, bot, tasks):
+        return "\n".join([self.texts['task-line-group'](task, bot.getChatMember(task.chat_id, task.user_id).user.name,
+                                                        bot.getChatMember(task.chat_id, task.owner_id).user.name)
+                          for task in tasks if not task.done])
+
+    def _to_task_list(self, bot, due_tasks):
         return "\n".join([self.texts['task-line'](bot.getChat(task.chat_id).title, task.title,
                                                   bot.getChatMember(task.chat_id, task.owner_id).user.name)
                           for task in due_tasks])

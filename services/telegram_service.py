@@ -22,3 +22,7 @@ class TelegramService:
         """
         user_name = bot.getChatMember(chat_id, user_id).user.name
         return f"[{user_name}](tg://user?id={user_id})"
+
+    @staticmethod
+    def is_private_chat(update):
+        return update.message.chat.type == 'private'
