@@ -31,6 +31,13 @@ texts = {'help': "Use\n"
          'task-overview-group': lambda chat_title: f"Here are {chat_title}'s open tasks",
          'task-overview-private-chat': f"Switch to the private chat with @{bot_name} "
                                        f"to view all of your assigned tasks!",
+         'task-review': lambda chat_title: f"This happened this week here at {chat_title}",
+         'task-review-motivation': f"All of you, keep up your great work!",
+         'task-line-review': lambda title, user_name, owner_name: f"๏ {user_name} completed {title} from {owner_name}",
+         'task-line-review-in-time': lambda in_time: f"in time!" if in_time else "a little late.",
+         'task-review-most-busy': lambda user_names, multiple:
+             "The most busy bee" + ("s" if multiple else "") + " of this week " + ("are" if multiple else "is") +
+             f" {user_names}!\nCongratulations!",
          'private-chat-required': f"Please switch to the private chat with @{bot_name} and write your commands there!",
          'user-welcome': lambda chat_title, name: f"Welcome in the {chat_title}'s realm of productivity, {name}!",
          'user-goodbye': lambda name: f"Farewell, my dear little exhausted busy bee {name}!",

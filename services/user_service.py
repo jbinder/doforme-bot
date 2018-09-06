@@ -39,6 +39,11 @@ class UserService:
         # noinspection PyTypeChecker
         return select(user_chat.user_id for user_chat in UserChat)[:]
 
+    @db_session
+    def get_all_chats(self):
+        # noinspection PyTypeChecker
+        return select (user_chat.chat_id for user_chat in UserChat)[:]
+
     # @db_session
     # def add_user_schedule_if_not_exists(self, user_id, chat_id):
     #     """ :returns True if added, False if already exists """

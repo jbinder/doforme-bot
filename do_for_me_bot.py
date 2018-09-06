@@ -1,9 +1,11 @@
-from datetime import time
+from collections import Counter
+from datetime import time, datetime, timedelta
 from logging import Logger
 
 import telegram
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove
 from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackQueryHandler, Filters
+from telegram.ext.jobqueue import Days
 
 from libraries.telegramcalendar import telegramcalendar
 from services.task_service import TaskService
@@ -55,6 +57,8 @@ class DoForMeBot:
             (self._job_daily_tasks_show_daily, time(hour=17, minute=0)),
         ]
         [dp.job_queue.run_daily(callback, time=run_at) for (callback, run_at) in jobs]
+
+        dp.job_queue.run_daily(self._job_weekly_review, time(hour=18, minute=0), days=(Days.SUN,))
 
         dp.add_error_handler(self._error_handler)
 
@@ -182,6 +186,9 @@ class DoForMeBot:
     def _job_daily_tasks_show_daily(self, bot, update):
         self._show_task_overviews(bot, False)
 
+    def _job_weekly_review(self, bot, update):
+        self._show_weekly_review(bot)
+
     def _error_handler(self, bot, update, error):
         """Log Errors caused by Updates."""
         self.logger.warning('Update "%s" caused error "%s"', update, error)
@@ -226,6 +233,22 @@ class DoForMeBot:
                         f"{self._to_task_list(bot, due_undefined)}\n\n" if due_undefined else "")
         return summary
 
+    def _show_weekly_review(self, bot):
+        for chat_id in self.user_service.get_all_chats():
+            tasks = [task for task in self.task_service.get_tasks_for_chat(chat_id)
+                     if task.done and task.done.date() > datetime.today().date() - timedelta(days=7)]
+            if len(tasks) > 0:
+                activity_counter = Counter([task.user_id for task in tasks])
+                most_busy = activity_counter.most_common(1)[0][1]
+                most_busy_users = [bot.getChatMember(chat_id, user_id).user.name
+                                   for (user_id, count) in activity_counter.items() if count == most_busy]
+                user_names = " and ".join(most_busy_users)
+                message = f"{self.texts['task-review'](bot.getChat(chat_id).title)}:\n" \
+                          f"{self._to_review_task_list(bot, tasks)}\n\n" \
+                          f"{self.texts['task-review-most-busy'](user_names, len(most_busy_users) > 1)}\n\n" \
+                          f"{self.texts['task-review-motivation']}"
+                bot.send_message(chat_id, message)
+
     def _get_chat_tasks(self, bot, chat_id):
         tasks = self.task_service.get_tasks_for_chat(chat_id)
         return f"{self.texts['task-overview-group'](bot.getChat(chat_id).title)}:\n" \
@@ -241,3 +264,11 @@ class DoForMeBot:
         return "\n".join([self.texts['task-line'](bot.getChat(task.chat_id).title, task.title,
                                                   bot.getChatMember(task.chat_id, task.owner_id).user.name)
                           for task in due_tasks])
+
+    def _to_review_task_list(self, bot, tasks):
+        return "\n".join([self.texts['task-line-review'](task.title,
+                                                         bot.getChatMember(task.chat_id, task.user_id).user.name,
+                                                         bot.getChatMember(task.chat_id, task.owner_id).user.name) +
+                          " " + self.texts['task-line-review-in-time'](task.done.date() <= task.due.date()
+                                                                       if task.due else True)
+                          for task in tasks if task.done])
