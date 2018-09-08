@@ -7,6 +7,7 @@ from telegram import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRe
 from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackQueryHandler, Filters
 from telegram.ext.jobqueue import Days
 
+from decorators.ensure_exec_sequence import ensure_exec_sequence
 from decorators.show_typing import show_typing
 from libraries.telegramcalendar import telegramcalendar
 from services.task_service import TaskService
@@ -29,6 +30,7 @@ class DoForMeBot:
         self.task_service = task_service
         self.user_service = user_service
         self.logger = logger
+        self.last_method_called = None
 
     def run(self, token):
         updater = Updater(token)
@@ -71,6 +73,7 @@ class DoForMeBot:
         update.message.reply_text(self.texts['help'])
 
     @show_typing
+    @ensure_exec_sequence(previous=None)
     def _do_select_chat(self, bot, update, user_data):
         user_data.clear()
 
@@ -94,6 +97,7 @@ class DoForMeBot:
              for (chat_id, chat_name) in chats])
         update.message.reply_text(self.texts['select-chat'], reply_markup=markup, quote=False)
 
+    @ensure_exec_sequence(previous="_do_select_chat")
     def _do_select_user(self, bot, message, user_data):
         markup = InlineKeyboardMarkup(
             [[InlineKeyboardButton(text=user_name, callback_data=f"user_id:{user_id}")]
@@ -102,9 +106,11 @@ class DoForMeBot:
         message.reply_text(self.texts['select-user'](user_data['title'], message.chat.first_name),
                            reply_markup=markup, quote=False)
 
+    @ensure_exec_sequence(previous="_do_select_user")
     def _do_select_due(self, bot, message, user_data):
         message.reply_text(self.texts['select-date'], reply_markup=telegramcalendar.create_calendar())
 
+    @ensure_exec_sequence(previous="_do_select_due")
     def _do_add_task(self, bot, message, user_data):
         user_id = user_data['user_id']
         chat_id = user_data['chat_id']
@@ -170,14 +176,16 @@ class DoForMeBot:
                     task.chat_id, self.texts['task-done-to-group'](owner_name, user_name, task.title),
                     parse_mode=telegram.ParseMode.MARKDOWN)
         elif len(data) > 1:
-            user_data[data[0]] = int(data[1])
-            if "user_id" not in user_data:
-                self._do_select_user(bot, update.callback_query.message, user_data)
-            elif "due" not in user_data:
-                self._do_select_due(bot, update.callback_query.message, user_data)
-            else:
-                user_data.clear()
-                raise RuntimeError("Invalid state, clearing input.")
+            # ensure no step is skipped by using old buttons
+            if data[0] == "chat_id" or "chat_id" in user_data:
+                user_data[data[0]] = int(data[1])
+                if "user_id" not in user_data:
+                    self._do_select_user(bot, update.callback_query.message, user_data)
+                elif "due" not in user_data:
+                    self._do_select_due(bot, update.callback_query.message, user_data)
+                else:
+                    user_data.clear()
+                    raise RuntimeError("Invalid state, clearing input.")
         else:
             selected, date = telegramcalendar.process_calendar_selection(bot, update)
             if selected:

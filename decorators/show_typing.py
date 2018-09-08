@@ -1,7 +1,10 @@
+import functools
+
 from telegram import Bot, Update, ChatAction
 
 
 def show_typing(f):
+    @functools.wraps(f)
     def decorator(*args, **kw):
         bot = args[1]
         update = args[2]
