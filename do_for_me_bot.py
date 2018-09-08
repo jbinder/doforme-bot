@@ -7,6 +7,7 @@ from telegram import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRe
 from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackQueryHandler, Filters
 from telegram.ext.jobqueue import Days
 
+from decorators.show_typing import show_typing
 from libraries.telegramcalendar import telegramcalendar
 from services.task_service import TaskService
 from services.telegram_service import TelegramService
@@ -65,9 +66,11 @@ class DoForMeBot:
         updater.start_polling()
         updater.idle()
 
+    @show_typing
     def _help_show(self, bot, update):
         update.message.reply_text(self.texts['help'])
 
+    @show_typing
     def _do_select_chat(self, bot, update, user_data):
         user_data.clear()
 
@@ -113,6 +116,7 @@ class DoForMeBot:
         bot.send_message(chat_id, self.texts['added-task-to-group'](owner_user_name, user_name, user_data['title']),
                          parse_mode=telegram.ParseMode.MARKDOWN)
 
+    @show_typing
     def _tasks_show(self, bot, update):
         if not self.telegram_service.is_private_chat(update):
             update.message.reply_text(self._get_chat_tasks(bot, update.effective_chat.id))
