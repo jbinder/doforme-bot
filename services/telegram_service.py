@@ -26,3 +26,11 @@ class TelegramService:
     @staticmethod
     def is_private_chat(update):
         return update.message.chat.type == 'private'
+
+    @staticmethod
+    def remove_inline_keybaord(bot, query):
+        bot.edit_message_text(text=query.message.text,
+                              chat_id=query.message.chat_id,
+                              message_id=query.message.message_id,
+                              reply_markup=None
+                              )

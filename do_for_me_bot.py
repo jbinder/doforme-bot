@@ -169,6 +169,7 @@ class DoForMeBot:
         if data[0] == "complete":
             task = self.task_service.get_task(data[1])
             if self.task_service.complete_task(data[1]):
+                self.telegram_service.remove_inline_keybaord(bot, update.callback_query)
                 owner_name = self.telegram_service.get_mention(bot, task.chat_id, task.owner_id)
                 user_name = self.telegram_service.get_mention(bot, task.chat_id, task.user_id)
                 update.callback_query.message.reply_text(self.texts['task-done'](task.title), quote=False)
@@ -176,6 +177,7 @@ class DoForMeBot:
                     task.chat_id, self.texts['task-done-to-group'](owner_name, user_name, task.title),
                     parse_mode=telegram.ParseMode.MARKDOWN)
         elif len(data) > 1:
+            self.telegram_service.remove_inline_keybaord(bot, update.callback_query)
             # ensure no step is skipped by using old buttons
             if data[0] == "chat_id" or "chat_id" in user_data:
                 user_data[data[0]] = int(data[1])
