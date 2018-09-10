@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from pony.orm import db_session, commit, select
+from pony.orm import db_session, commit, select, count
 
 from data.db import Task
 
@@ -83,4 +83,16 @@ class TaskService:
         for task in tasks:
             task.delete()
             commit()
+
+    @db_session
+    def get_user_stats(self, user_id):
+        return {
+            'owning': select(count(task) for task in Task if task.owner_id == user_id).first(),
+            'assigned': select(count(task) for task in Task if task.user_id == user_id).first(),
+            'done': select(count(task) for task in Task
+                           if task.user_id == user_id and (task.done is not None)).first(),
+            'onTime': select(count(task) for task in Task
+                             if (task.user_id == user_id) and (task.done is not None)
+                             and (task.done is not None) and (task.done.date() <= task.due.date())).first()
+        }
 

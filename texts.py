@@ -2,6 +2,7 @@ bot_name = "DoForMeBot"
 texts = {'help': "Use\n"
                  f"/do [your task title] - to start distributing tasks to your helpful peers\n"
                  f"/tasks - to list your duties\n"
+                 f"/stats - to list some numbers about your work\n"
                  f"/help - to show this info\n"
                  f"Note: talk to the bot in the private chat with the bot, not in groups!\n"
                  f"WARNING: This bot is not fully grown up, it might forget data, be asleep, confuse data, etc.\n"
@@ -43,5 +44,9 @@ texts = {'help': "Use\n"
          'user-goodbye': lambda name: f"Farewell, my dear little exhausted busy bee {name}!",
          'task-done': lambda title: f"I released you from the task {title}.",
          'task-done-to-group': lambda owner_name, user_name, title: f"{owner_name}: {user_name} completed {title}!",
-         'no-tasks': "Nothing to do right now, enjoy!"
+         'no-tasks': "Nothing to do right now, enjoy!",
+         'owning': "Owning",
+         'assigned': "Assigned",
+         'done': "Done",
+         'onTime': "On time"
          }

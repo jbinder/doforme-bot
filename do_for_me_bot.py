@@ -38,7 +38,8 @@ class DoForMeBot:
             ('start', self._help_show, False),
             ('help', self._help_show, False),
             ('do', self._do_select_chat, True),
-            ('tasks', self._tasks_show, False)
+            ('tasks', self._tasks_show, False),
+            ('stats', self._stats_show, False),
         ]
         [dp.add_handler(CommandHandler(command, callback, pass_user_data=pass_user_data))
          for command, callback, pass_user_data in cmd_handlers]
@@ -133,6 +134,14 @@ class DoForMeBot:
                                                            bot.getChatMember(task.chat_id, task.owner_id).user.name)
             markup = self._get_task_markup(task)
             update.message.reply_text(task_summary, reply_markup=markup)
+
+    @show_typing
+    def _stats_show(self, bot, update):
+        if not self._assure_private_chat(update):
+            return
+        stats = self.task_service.get_user_stats(update.effective_user.id)
+        message = "\n".join([self.texts[stats_type] + ": " + str(stats[stats_type]) for stats_type in stats])
+        update.message.reply_text(message)
 
     def _chat_member_add(self, bot, update):
         chat_id = update.message.chat.id
