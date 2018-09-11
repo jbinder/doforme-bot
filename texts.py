@@ -48,5 +48,6 @@ texts = {'help': "Use\n"
          'owning': "Owning",
          'assigned': "Assigned",
          'done': "Done",
-         'onTime': "On time"
+         'onTime': "On time",
+         'count': "Count"
          }

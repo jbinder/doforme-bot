@@ -137,9 +137,9 @@ class DoForMeBot:
 
     @show_typing
     def _stats_show(self, bot, update):
-        if not self._assure_private_chat(update):
-            return
-        stats = self.task_service.get_user_stats(update.effective_user.id)
+        stats = self.task_service.get_user_stats(update.effective_user.id) if \
+            self.telegram_service.is_private_chat(update) else \
+            self.task_service.get_chat_stats(update.effective_chat.id)
         message = "\n".join([self.texts[stats_type] + ": " + str(stats[stats_type]) for stats_type in stats])
         update.message.reply_text(message)
 

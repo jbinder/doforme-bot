@@ -96,3 +96,14 @@ class TaskService:
                              and (task.done is not None) and (task.done.date() <= task.due.date())).first()
         }
 
+    @db_session
+    def get_chat_stats(self, chat_id):
+        return {
+            'count': select(count(task) for task in Task if task.chat_id == chat_id).first(),
+            'done': select(count(task) for task in Task
+                           if task.chat_id == chat_id and (task.done is not None)).first(),
+            'onTime': select(count(task) for task in Task
+                             if (task.chat_id == chat_id) and (task.done is not None)
+                             and (task.done is not None) and (task.done.date() <= task.due.date())).first()
+        }
+
