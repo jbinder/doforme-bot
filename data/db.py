@@ -25,6 +25,13 @@ class Task(db.Entity):
     due = Optional(datetime)
 
 
+class Feedback(db.Entity):
+    user_id = Required(int)
+    created = Required(datetime)
+    text = Required(str)
+    done = Optional(datetime)
+
+
 db.bind(provider='sqlite', filename='database.sqlite', create_db=True)
 db.generate_mapping(create_tables=True)
 

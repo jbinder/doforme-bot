@@ -1,16 +1,20 @@
 bot_name = "DoForMeBot"
 texts = {'help': "Use\n"
-                 f"/do [your task title] - to start distributing tasks to your helpful peers\n"
+                 f"/do [your task title] - to start distributing tasks to your helpful peers "
+                 f"(private chat with the bot only)\n"
                  f"/tasks - to list your duties\n"
                  f"/stats - to list some numbers about your work\n"
-                 f"/help - to show this info\n"
-                 f"Note: talk to the bot in the private chat with the bot, not in groups!\n"
+                 f"/feedback [your message] - to report issues or get in contact with the doforme-team\n"
+                 f"/help - to show this info\n\n"
+                 f"Note: All tasks from groups that you leave will be deleted!\n\n"
                  f"WARNING: This bot is not fully grown up, it might forget data, be asleep, confuse data, etc.\n"
-                 f"Please find the doforme-bot on GitHub to report any issues, thanks a lot!",
+                 f"Please use the feedback command or find the doforme-bot on GitHub "
+                 f"to report any issues, thanks a lot!",
          'add-to-group': "Please add the bot to a group to get started!",
          'welcome-bot': "Hi all! Please say hi to me so I am able to let others assign task to you!"
-                        "Also, please make sure to add me to allow me to interact with you and vice versa.",
+                        "Also, please make sure to add me as contact to allow me to interact with you and vice versa.",
          'missing-title': lambda name: f"Please include a task title, {name}!",
+         'missing-text': lambda name: f"Please include a text, {name}!",
          'select-chat': f"Which is the place of power?\nSelect below!",
          'select-user': lambda title, name: f"Whom do you want to enslave doing {title} for you, {name}?\n"
                                             f"Select below!",
@@ -49,5 +53,14 @@ texts = {'help': "Use\n"
          'assigned': "Assigned",
          'done': "Done",
          'onTime': "On time",
-         'count': "Count"
+         'count': "Count",
+         'feedback-thanks': "Thanks for your feedback, the doforme-team will have a look and might get back to you.",
+         'feedback-include-id': "Include the id of the feedback in the form: id [message]",
+         'feedback-not-found': "Feedback not found!",
+         'feedback-closed': "I closed the feedback!",
+         'feedback-none': "Currently there is no open feedback, enjoy!",
+         'feedback-new': "There is new feedback!",
+         'feedback-reply-prefix': "There is a reply from the doforme-team to your feedback:",
+         'feedback-reply-postfix': "If you want to reply to this message, please use the feedback command!",
+         'feedback-reply-sent': "I sent your reply to the user!",
          }
