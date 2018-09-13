@@ -87,24 +87,45 @@ class TaskService:
 
     @db_session
     def get_user_stats(self, user_id):
+        # noinspection PyTypeChecker
         return {
             'owning': select(count(task) for task in Task if task.owner_id == user_id).first(),
+            'open-owning': select(count(task) for task in Task
+                                  if task.owner_id == user_id and (task.done is None)).first(),
+            'done-owning': select(count(task) for task in Task
+                                  if task.owner_id == user_id and (task.done is not None)).first(),
+            'onTime-owning': select(count(task) for task in Task
+                                    if (task.owner_id == user_id) and (task.done is not None)
+                                    and (task.done.date() <= task.due.date())).first(),
+            'late-owning': select(count(task) for task in Task
+                                  if (task.owner_id == user_id) and (task.done is not None)
+                                  and (task.done.date() > task.due.date())).first(),
             'assigned': select(count(task) for task in Task if task.user_id == user_id).first(),
+            'open': select(count(task) for task in Task
+                           if task.user_id == user_id and (task.done is None)).first(),
             'done': select(count(task) for task in Task
                            if task.user_id == user_id and (task.done is not None)).first(),
             'onTime': select(count(task) for task in Task
                              if (task.user_id == user_id) and (task.done is not None)
-                             and (task.done is not None) and (task.done.date() <= task.due.date())).first()
-        }
+                             and (task.done.date() <= task.due.date())).first(),
+            'late': select(count(task) for task in Task
+                           if (task.user_id == user_id) and (task.done is not None)
+                           and (task.done.date() > task.due.date())).first()
+         }
 
     @db_session
     def get_chat_stats(self, chat_id):
+        # noinspection PyTypeChecker
         return {
             'count': select(count(task) for task in Task if task.chat_id == chat_id).first(),
+            'open': select(count(task) for task in Task if task.chat_id == chat_id and (task.done is None)).first(),
             'done': select(count(task) for task in Task
                            if task.chat_id == chat_id and (task.done is not None)).first(),
             'onTime': select(count(task) for task in Task
                              if (task.chat_id == chat_id) and (task.done is not None)
-                             and (task.done is not None) and (task.done.date() <= task.due.date())).first()
-        }
+                             and (task.done.date() <= task.due.date())).first(),
+            'late': select(count(task) for task in Task
+                           if (task.chat_id == chat_id) and (task.done is not None)
+                           and (task.done.date() > task.due.date())).first()
+         }
 
