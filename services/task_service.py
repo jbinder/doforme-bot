@@ -113,8 +113,10 @@ class TaskService:
     def _get_open_stats(tasks_query):
         done = {
             'count': tasks_query.count(),
-            'onTime': tasks_query.where(lambda task: task.due.date() <= datetime.today().date()).count(),
-            'late': tasks_query.where(lambda task: task.due.date() > datetime.today().date()).count()
+            'onTime': tasks_query.where(
+                lambda task: task.due is None or task.due.date() >= datetime.today().date()).count(),
+            'late': tasks_query.where(
+                lambda task: task.due is not None and task.due.date() < datetime.today().date()).count()
         }
         return done
 
@@ -122,8 +124,8 @@ class TaskService:
     def _get_done_stats(tasks_query):
         done = {
             'count': tasks_query.count(),
-            'onTime': tasks_query.filter(lambda task: task.done.date() <= task.due.date()).count(),
-            'late': tasks_query.filter(lambda task: task.done.date() > task.due.date()).count()
+            'onTime': tasks_query.filter(lambda task: task.due is None or task.done.date() <= task.due.date()).count(),
+            'late': tasks_query.filter(lambda task: task.due is not None and task.done.date() > task.due.date()).count()
         }
         return done
 
