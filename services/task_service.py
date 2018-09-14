@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from pony.orm import db_session, commit, select, count
+from pony.orm import db_session, commit, select
 
 from data.db import Task
 
@@ -88,44 +88,42 @@ class TaskService:
     @db_session
     def get_user_stats(self, user_id):
         # noinspection PyTypeChecker
+        owning_tasks_query = select(task for task in Task if task.owner_id == user_id)
+        # noinspection PyTypeChecker
+        assigned_tasks_query = select(task for task in Task if task.user_id == user_id)
         return {
-            'owning': select(count(task) for task in Task if task.owner_id == user_id).first(),
-            'open-owning': select(count(task) for task in Task
-                                  if task.owner_id == user_id and (task.done is None)).first(),
-            'done-owning': select(count(task) for task in Task
-                                  if task.owner_id == user_id and (task.done is not None)).first(),
-            'onTime-owning': select(count(task) for task in Task
-                                    if (task.owner_id == user_id) and (task.done is not None)
-                                    and (task.done.date() <= task.due.date())).first(),
-            'late-owning': select(count(task) for task in Task
-                                  if (task.owner_id == user_id) and (task.done is not None)
-                                  and (task.done.date() > task.due.date())).first(),
-            'assigned': select(count(task) for task in Task if task.user_id == user_id).first(),
-            'open': select(count(task) for task in Task
-                           if task.user_id == user_id and (task.done is None)).first(),
-            'done': select(count(task) for task in Task
-                           if task.user_id == user_id and (task.done is not None)).first(),
-            'onTime': select(count(task) for task in Task
-                             if (task.user_id == user_id) and (task.done is not None)
-                             and (task.done.date() <= task.due.date())).first(),
-            'late': select(count(task) for task in Task
-                           if (task.user_id == user_id) and (task.done is not None)
-                           and (task.done.date() > task.due.date())).first()
+            'owning': self._get_stats(owning_tasks_query),
+            'assigned': self._get_stats(assigned_tasks_query)
          }
 
     @db_session
     def get_chat_stats(self, chat_id):
         # noinspection PyTypeChecker
+        tasks_query = select(task for task in Task if task.chat_id == chat_id)
+        return self._get_stats(tasks_query)
+
+    def _get_stats(self, tasks_query):
         return {
-            'count': select(count(task) for task in Task if task.chat_id == chat_id).first(),
-            'open': select(count(task) for task in Task if task.chat_id == chat_id and (task.done is None)).first(),
-            'done': select(count(task) for task in Task
-                           if task.chat_id == chat_id and (task.done is not None)).first(),
-            'onTime': select(count(task) for task in Task
-                             if (task.chat_id == chat_id) and (task.done is not None)
-                             and (task.done.date() <= task.due.date())).first(),
-            'late': select(count(task) for task in Task
-                           if (task.chat_id == chat_id) and (task.done is not None)
-                           and (task.done.date() > task.due.date())).first()
-         }
+            'count': tasks_query.count(),
+            'open': self._get_open_stats(tasks_query.where(lambda task: task.done is None)),
+            'done': self._get_done_stats(tasks_query.where(lambda task: task.done is not None))
+        }
+
+    @staticmethod
+    def _get_open_stats(tasks_query):
+        done = {
+            'count': tasks_query.count(),
+            'onTime': tasks_query.where(lambda task: task.due.date() <= datetime.today().date()).count(),
+            'late': tasks_query.where(lambda task: task.due.date() > datetime.today().date()).count()
+        }
+        return done
+
+    @staticmethod
+    def _get_done_stats(tasks_query):
+        done = {
+            'count': tasks_query.count(),
+            'onTime': tasks_query.filter(lambda task: task.done.date() <= task.due.date()).count(),
+            'late': tasks_query.filter(lambda task: task.done.date() > task.due.date()).count()
+        }
+        return done
 

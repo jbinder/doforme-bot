@@ -28,8 +28,8 @@ texts = {'help': "Use\n"
          'summary-due-this-week': "This week",
          'summary-due-later': "Later",
          'summary-due-undefined': "Undefined",
-         'task-line-summary': lambda task, chat_name, owner_name: (f"{task.due.date()} - " if task.due else "") +
-                                                                  f"{chat_name} - {task.title} ({owner_name})",
+         'task-line-summary': lambda task, chat_name, owner_name:
+         (f"{task.due.date()} - " if task.due else "") + f"{chat_name} - {task.title} ({owner_name})",
          'task-line': lambda chat_title, title, owner_name: f"๏ {chat_title}: {title} from {owner_name}",
          'task-line-group': lambda task, user_name, owner_name: f"๏ " + (f"{task.due.date()} - " if task.due else "") +
                                                                 f"{task.title} from {owner_name} for {user_name}",
@@ -41,25 +41,21 @@ texts = {'help': "Use\n"
          'task-line-review': lambda title, user_name, owner_name: f"๏ {user_name} completed {title} from {owner_name}",
          'task-line-review-in-time': lambda in_time: f"in time!" if in_time else "a little late.",
          'task-review-most-busy': lambda user_names, multiple:
-             "The most busy bee" + ("s" if multiple else "") + " of this week " + ("are" if multiple else "is") +
-             f" {user_names}!\nCongratulations!",
+         "The most busy bee" + ("s" if multiple else "") + " of this week " + ("are" if multiple else "is") +
+         f" {user_names}!\nCongratulations!",
          'private-chat-required': f"Please switch to the private chat with @{bot_name} and write your commands there!",
          'user-welcome': lambda chat_title, name: f"Welcome in the {chat_title}'s realm of productivity, {name}!",
          'user-goodbye': lambda name: f"Farewell, my dear little exhausted busy bee {name}!",
          'task-done': lambda title: f"I released you from the task {title}.",
          'task-done-to-group': lambda owner_name, user_name, title: f"{owner_name}: {user_name} completed {title}!",
          'no-tasks': "Nothing to do right now, enjoy!",
-         'owning': "Owning",
-         'open-owning': "- Open",
-         'done-owning': "- Done",
-         'onTime-owning': "-- On time",
-         'late-owning': "-- Late",
-         'assigned': "Assigned",
-         'open': "- Open",
-         'done': "- Done",
-         'onTime': "-- On time",
-         'late': "-- Late",
-         'count': "Count",
+         'tasks-stats-done': lambda count, on_time, late:
+         f"{count} task" + ("s" if count != 1 else "") + f" have been completed, {on_time} on time, {late} late.",
+         'tasks-stats-open': lambda count, on_time, late:
+         f"{count} task" + ("s are" if count != 1 else " is") + f" left open, {on_time} still in time, {late} overdue.",
+         'task-stats': lambda owning_count, owning, assigned_count, assigned:
+         f"You have been assigned to {assigned_count} tasks:\n{assigned}\n\n"
+         f"You assigned others to {owning_count} tasks:\n{owning}",
          'feedback-thanks': "Thanks for your feedback, the doforme-team will have a look and might get back to you.",
          'feedback-include-id': "Include the id of the feedback in the form: id [message]",
          'feedback-not-found': "Feedback not found!",

@@ -146,10 +146,15 @@ class DoForMeBot:
 
     @show_typing
     def _stats_show(self, bot, update):
-        stats = self.task_service.get_user_stats(update.effective_user.id) if \
-            self.telegram_service.is_private_chat(update) else \
-            self.task_service.get_chat_stats(update.effective_chat.id)
-        message = "\n".join([self.texts[stats_type] + ": " + str(stats[stats_type]) for stats_type in stats])
+        if self.telegram_service.is_private_chat(update):
+            stats = self.task_service.get_user_stats(update.effective_user.id)
+            owning_message = self._get_stats_message(stats['owning'])
+            assigned_message = self._get_stats_message(stats['assigned'])
+            message = self.texts['task-stats'](stats['owning']['count'], owning_message,
+                                               stats['assigned']['count'], assigned_message)
+        else:
+            stats = self.task_service.get_chat_stats(update.effective_chat.id)
+            message = self._get_stats_message(stats)
         update.message.reply_text(message)
 
     @show_typing
@@ -168,7 +173,7 @@ class DoForMeBot:
         if not self._is_admin(update.effective_user.id):
             return
         message = "\n".join([f"{feedback.id} / {feedback.created.date()} / {feedback.text}"
-                            for feedback in self.feedback_service.get_all() if feedback.done is None])
+                             for feedback in self.feedback_service.get_all() if feedback.done is None])
         if message:
             update.message.reply_text(message)
         else:
@@ -358,3 +363,10 @@ class DoForMeBot:
 
     def _is_admin(self, user_id):
         return self.admin_id and self.admin_id == user_id
+
+    def _get_stats_message(self, stats):
+        return self.texts['tasks-stats-done'](
+            stats['done']['count'], stats['done']['onTime'], stats['done']['late']) + \
+               "\n" + self.texts['tasks-stats-open'](
+            stats['open']['count'], stats['open']['onTime'], stats['open']['late'])
+
