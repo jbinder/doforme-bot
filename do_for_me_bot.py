@@ -46,9 +46,10 @@ class DoForMeBot:
             ('tasks', self._tasks_show, False),
             ('stats', self._stats_show, False),
             ('feedback', self._feedback_add, False),
-            ('admin-feedback-show', self._feedback_show, False),
-            ('admin-feedback-reply', self._feedback_reply, False),
-            ('admin-feedback-close', self._feedback_close, False),
+            ('admin-stats', self._admin_stats, False),
+            ('admin-feedback-show', self._admin_feedback_show, False),
+            ('admin-feedback-reply', self._admin_feedback_reply, False),
+            ('admin-feedback-close', self._admin_feedback_close, False),
         ]
         [dp.add_handler(CommandHandler(command, callback, pass_user_data=pass_user_data))
          for command, callback, pass_user_data in cmd_handlers]
@@ -169,7 +170,22 @@ class DoForMeBot:
             bot.send_message(self.admin_id, self.texts['feedback-new'])
 
     @show_typing
-    def _feedback_show(self, bot, update):
+    def _admin_stats(self, bot, update):
+        if not self._is_admin(update.effective_user.id):
+            return
+        task_stats = self.task_service.get_all_stats()
+        user_stats = self.user_service.get_stats()
+        feedback_stats = self.feedback_service.get_stats()
+        message = f"{self.texts['tasks']}:\n"
+        message = message + self._get_stats_message(task_stats)
+        message = message + f"\n\n{self.texts['users']}:\n" + "\n".join([f"{key}: {str(value)}" for
+                                                                         key, value in user_stats.items()])
+        message = message + f"\n\n{self.texts['feedback']}:\n" + "\n".join([f"{key}: {str(value)}"
+                                                                            for key, value in feedback_stats.items()])
+        update.message.reply_text(message)
+
+    @show_typing
+    def _admin_feedback_show(self, bot, update):
         if not self._is_admin(update.effective_user.id):
             return
         message = "\n".join([f"{feedback.id} / {feedback.created.date()} / {feedback.text}"
@@ -180,7 +196,7 @@ class DoForMeBot:
             update.message.reply_text(self.texts['feedback-none'])
 
     @show_typing
-    def _feedback_reply(self, bot, update):
+    def _admin_feedback_reply(self, bot, update):
         if not self._is_admin(update.effective_user.id):
             return
         text = update.message.text[len("/admin-feedback-reply"):].strip()
@@ -200,7 +216,7 @@ class DoForMeBot:
         update.message.reply_text(self.texts['feedback-reply-sent'])
 
     @show_typing
-    def _feedback_close(self, bot, update):
+    def _admin_feedback_close(self, bot, update):
         if not self._is_admin(update.effective_user.id):
             return
         feedback_id = update.message.text[len("/admin-feedback-close"):].strip()

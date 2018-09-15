@@ -21,6 +21,7 @@ Run python main.py -t [your telegram token] -a [admin id]
 
 The admin id is a Telegram user id and allows the specified user to perform following commands:
 
+* admin-stats: Shows basic stats of the data in the database.
 * admin-feedback-show: Lists unresolved (not done) feedback entries.
 * admin-feedback-reply ([id] [text]): Sends [text] to the user that issued feedback [id].
 * admin-feedback-close ([id]): Marks feedback [id] as done.

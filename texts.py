@@ -56,6 +56,9 @@ texts = {'help': "Use\n"
          'task-stats': lambda owning_count, owning, assigned_count, assigned:
          f"You have been assigned to {assigned_count} tasks:\n{assigned}\n\n"
          f"You assigned others to {owning_count} tasks:\n{owning}",
+         'tasks': "Tasks",
+         'users': "Users",
+         'feedback': "Feedback",
          'feedback-thanks': "Thanks for your feedback, the doforme-team will have a look and might get back to you.",
          'feedback-include-id': "Include the id of the feedback in the form: id [message]",
          'feedback-not-found': "Feedback not found!",

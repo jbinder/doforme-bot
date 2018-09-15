@@ -27,3 +27,10 @@ class FeedbackService:
     def get_all(self):
         # noinspection PyTypeChecker
         return select(feedback for feedback in Feedback)[:]
+
+    @db_session
+    def get_stats(self):
+        # noinspection PyTypeChecker
+        return {
+            'count': select(feedback for feedback in Feedback).count(False)
+        }

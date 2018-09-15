@@ -102,6 +102,12 @@ class TaskService:
         tasks_query = select(task for task in Task if task.chat_id == chat_id)
         return self._get_stats(tasks_query)
 
+    @db_session
+    def get_all_stats(self):
+        # noinspection PyTypeChecker
+        tasks_query = select(task for task in Task)
+        return self._get_stats(tasks_query)
+
     def _get_stats(self, tasks_query):
         return {
             'count': tasks_query.count(),
