@@ -135,15 +135,27 @@ class DoForMeBot:
 
         user_id = update.effective_user.id
         tasks = [task for task in self.task_service.get_tasks(user_id) if not task.done]
+
+        update.message.reply_text(self.texts['task-headline-assigned'])
         if len(tasks) < 1:
             update.message.reply_text(self.texts['no-tasks'])
-            return
 
         for task in tasks:
             task_summary = self.texts['task-line-summary'](task, bot.getChat(task.chat_id).title,
                                                            bot.getChatMember(task.chat_id, task.owner_id).user.name)
             markup = self._get_task_markup(task)
             update.message.reply_text(task_summary, reply_markup=markup)
+
+        tasks = [task for task in self.task_service.get_owning_tasks(user_id) if not task.done]
+        text = f"{self.texts['task-headline-owning']}:\n"
+        if len(tasks) < 1:
+            text = text + self.texts['no-tasks']
+        else:
+            text = text + "\n".join(
+                [self.texts['task-line-owning-summary'](task, bot.getChat(task.chat_id).title,
+                                                        bot.getChatMember(task.chat_id, task.owner_id).user.name)
+                 for task in tasks])
+        update.message.reply_text(text)
 
     @show_typing
     def _stats_show(self, bot, update):

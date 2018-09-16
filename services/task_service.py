@@ -23,6 +23,11 @@ class TaskService:
         return select(task for task in Task if task.user_id == user_id).order_by(lambda t: t.due)[:]
 
     @db_session
+    def get_owning_tasks(self, owner_id):
+        # noinspection PyTypeChecker
+        return select(task for task in Task if task.owner_id == owner_id).order_by(lambda t: t.due)[:]
+
+    @db_session
     def get_tasks_for_chat(self, chat_id):
         # noinspection PyTypeChecker
         return select(task for task in Task if task.chat_id == chat_id).order_by(lambda t: t.due)[:]
