@@ -50,6 +50,7 @@ class DoForMeBot:
             ('admin-feedback-show', self._admin_feedback_show, False),
             ('admin-feedback-reply', self._admin_feedback_reply, False),
             ('admin-feedback-close', self._admin_feedback_close, False),
+            ('admin-announce', self._admin_announce, False),
         ]
         [dp.add_handler(CommandHandler(command, callback, pass_user_data=pass_user_data))
          for command, callback, pass_user_data in cmd_handlers]
@@ -136,7 +137,7 @@ class DoForMeBot:
         user_id = update.effective_user.id
         tasks = [task for task in self.task_service.get_tasks(user_id) if not task.done]
 
-        update.message.reply_text(self.texts['task-headline-assigned'])
+        update.message.reply_text(f"{self.texts['task-headline-assigned']}:")
         if len(tasks) < 1:
             update.message.reply_text(self.texts['no-tasks'])
 
@@ -237,6 +238,20 @@ class DoForMeBot:
             return
         self.feedback_service.set_resolved(int(feedback_id))
         update.message.reply_text(self.texts['feedback-closed'])
+
+    @show_typing
+    def _admin_announce(self, bot, update):
+        if not self._is_admin(update.effective_user.id):
+            return
+        text = update.message.text[len("/admin-announce"):].strip()
+        if len(text) < 1:
+            update.message.reply_text(self.texts['missing-text'](self.texts['admin']))
+            return
+        users = self.user_service.get_all_users()
+        message = f"{self.texts['announcement-prefix']}\n{text}\n\n{self.texts['feedback-reply-postfix']}"
+        for user_id in users:
+            bot.send_message(user_id, message)
+        update.message.reply_text(self.texts['announcement-sent'](len(users)))
 
     def _chat_member_add(self, bot, update):
         chat_id = update.message.chat.id
