@@ -21,7 +21,8 @@ texts = {'help': "Use\n"
          'select-date': "Select a due date!",
          'added-task': lambda name, title: f"I burdened {name} with your request to {title}.",
          'added-task-to-group':
-             lambda owner_name, user_name, title: f"{owner_name} loaded {title} on {user_name}'s back.",
+             lambda owner_name, user_name, title, due: f"{owner_name} loaded {title} on {user_name}'s back" + (
+                 "" if not due else f", due {due.date()}") + ".",
          'btn-complete': lambda title: f"Complete {title}",
          'summary-overdue': "Overdue!!!!",
          'summary-due-today': "Due today",

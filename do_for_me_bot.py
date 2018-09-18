@@ -125,7 +125,9 @@ class DoForMeBot:
         message.reply_text(self.texts['added-task'](user_name, user_data['title']),
                            quote=False, parse_mode=telegram.ParseMode.MARKDOWN, reply_markup=ReplyKeyboardRemove())
         owner_user_name = self.telegram_service.get_mention(bot, message.chat.id, user_data['owner_id'])
-        bot.send_message(chat_id, self.texts['added-task-to-group'](owner_user_name, user_name, user_data['title']),
+        bot.send_message(chat_id, self.texts['added-task-to-group'](owner_user_name, user_name,
+                                                                    user_data['title'],
+                                                                    user_data['due']),
                          parse_mode=telegram.ParseMode.MARKDOWN)
 
     @show_typing
@@ -412,4 +414,3 @@ class DoForMeBot:
             stats['done']['count'], stats['done']['onTime'], stats['done']['late']) + \
                "\n" + self.texts['tasks-stats-open'](
             stats['open']['count'], stats['open']['onTime'], stats['open']['late'])
-
