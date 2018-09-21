@@ -291,6 +291,9 @@ class DoForMeBot:
                 bot.send_message(
                     task.chat_id, self.texts['task-done-to-group'](owner_name, user_name, task.title),
                     parse_mode=telegram.ParseMode.MARKDOWN)
+        elif data[0] == "edit-date":
+            user_data['task_id'] = data[1]
+            self._do_select_due(bot, update.callback_query.message, user_data)
         elif len(data) > 1:
             self.telegram_service.remove_inline_keybaord(bot, update.callback_query)
             user_data[data[0]] = int(data[1])
@@ -305,10 +308,26 @@ class DoForMeBot:
             selected, date = telegramcalendar.process_calendar_selection(bot, update)
             if selected:
                 user_data['due'] = date
-                self._do_add_task(bot, update.callback_query.message, user_data)
+                if user_data['task_id']:
+                    self._edit_due(bot, date, update, user_data)
+                else:
+                    self._do_add_task(bot, update.callback_query.message, user_data)
                 user_data.clear()
 
         update.callback_query.answer()
+
+    def _edit_due(self, bot, date, update, user_data):
+        task = self.task_service.get_task(user_data['task_id'])
+        prev_due = task.due
+        self.task_service.update_due_date(task.id, date)
+        chat_id = task.chat_id
+        user_name = self.telegram_service.get_mention(bot, chat_id, task.user_id)
+        bot.send_message(
+            chat_id, self.texts['updated-task-tue-to-group'](user_name, task.title, prev_due, date),
+            parse_mode=telegram.ParseMode.MARKDOWN)
+        update.callback_query.message.reply_text(self.texts['updated-task'],
+                                                 quote=False, parse_mode=telegram.ParseMode.MARKDOWN,
+                                                 reply_markup=ReplyKeyboardRemove())
 
     def _job_daily_tasks_show_all(self, bot, update):
         self._show_task_overviews(bot, True)
@@ -336,7 +355,8 @@ class DoForMeBot:
 
     def _get_task_markup(self, task):
         return InlineKeyboardMarkup(
-            [[InlineKeyboardButton(text=self.texts['btn-complete'](task.title), callback_data=f"complete:{task.id}")]],
+            [[InlineKeyboardButton(text=self.texts['btn-complete'], callback_data=f"complete:{task.id}"),
+              InlineKeyboardButton(text=self.texts['btn-edit-date'], callback_data=f"edit-date:{task.id}")]],
             one_time_keyboard=True)
 
     def _show_task_overviews(self, bot, show_future_tasks):

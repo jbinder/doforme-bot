@@ -113,6 +113,11 @@ class TaskService:
         tasks_query = select(task for task in Task)
         return self._get_stats(tasks_query)
 
+    @db_session
+    def update_due_date(self, task_id, due):
+        Task[task_id].due = due
+        commit()
+
     def _get_stats(self, tasks_query):
         return {
             'count': tasks_query.count(),

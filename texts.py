@@ -23,7 +23,12 @@ texts = {'help': "Use\n"
          'added-task-to-group':
              lambda owner_name, user_name, title, due: f"{owner_name} loaded {title} on {user_name}'s back" + (
                  "" if not due else f", due {due.date()}") + ".",
-         'btn-complete': lambda title: f"Complete {title}",
+         'updated-task-tue-to-group':
+             lambda user_name, title, prev_due, due: f"{user_name} changed the due of {title} from {prev_due.date()} "
+                                                     f"to {due.date()}.",
+         'updated-task': "I updated your task.",
+         'btn-complete': "Complete",
+         'btn-edit-date': "Edit date",
          'summary-overdue': "Overdue!!!!",
          'summary-due-today': "Due today",
          'summary-due-this-week': "This week",
