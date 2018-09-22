@@ -23,12 +23,24 @@ texts = {'help': "Use\n"
          'added-task-to-group':
              lambda owner_name, user_name, title, due: f"{owner_name} loaded {title} on {user_name}'s back" + (
                  "" if not due else f", due {due.date()}") + ".",
-         'updated-task-tue-to-group':
-             lambda user_name, title, prev_due, due: f"{user_name} changed the due of {title} from {prev_due.date()} "
-                                                     f"to {due.date()}.",
-         'updated-task': "I updated your task.",
+         'update-task-due-request':
+             lambda user_name, title, prev_due, due: f"{user_name} requested the change the due date of {title} "
+                                                     f"from {prev_due.date()} to {due.date()}.",
+         'update-task-due-accepted':
+             lambda requestee_name, requestor_name, title, prev_due, due:
+             f"{requestee_name} accepted {requestor_name}'s request to change the due of {title} "
+             f"from {prev_due.date()} to {due.date()}.",
+         'update-task-due-denied':
+             lambda requestee_name, requestor_name, title, prev_due, due:
+             f"{requestee_name} denied {requestor_name} to update the due date of {title} "
+             f"from {prev_due.date()} to {due.date()}",
+         'update-denied': "You denied the request.",
+         'update-granted': "You kindly accepted the request.",
+         'updated-task-requested': lambda user_name: f"I requested {user_name} to updated your task.",
          'btn-complete': "Complete",
          'btn-edit-date': "Edit date",
+         'btn-accept': "Accept",
+         'btn-deny': "Deny",
          'summary-overdue': "Overdue!!!!",
          'summary-due-today': "Due today",
          'summary-due-this-week': "This week",

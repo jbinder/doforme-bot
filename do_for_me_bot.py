@@ -1,6 +1,6 @@
+import re
 from collections import Counter
 from datetime import time, datetime, timedelta
-from logging import Logger
 
 import telegram
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove
@@ -22,7 +22,7 @@ class DoForMeBot:
     task_service: TaskService
     user_service: UserService
     feedback_service: FeedbackService
-    logger: Logger
+    _date_format: str
 
     def __init__(self, bot_name, texts, telegram_service, task_service, user_service, feedback_service,
                  admin_id, logger):
@@ -34,6 +34,7 @@ class DoForMeBot:
         self.feedback_service = feedback_service
         self.admin_id = admin_id
         self.logger = logger
+        self._date_format = "%Y-%m-%d"
 
     def run(self, token):
         updater = Updater(token)
@@ -280,7 +281,7 @@ class DoForMeBot:
             update.message.reply_text(self.texts['user-goodbye'](update.message.left_chat_member.first_name))
 
     def _inline_handler(self, bot, update, user_data):
-        data = update.callback_query.data.split(":")
+        data = re.split("[:,\n]", update.callback_query.data)
         if data[0] == "complete":
             task = self.task_service.get_task(data[1])
             if self.task_service.complete_task(data[1]):
@@ -294,6 +295,12 @@ class DoForMeBot:
         elif data[0] == "edit-date":
             user_data['task_id'] = data[1]
             self._do_select_due(bot, update.callback_query.message, user_data)
+        elif data[0] == "edit-due-deny":
+            self._edit_due_deny(bot, data, update)
+            self.telegram_service.remove_inline_keybaord(bot, update.callback_query)
+        elif data[0] == "edit-due-accept":
+            self._edit_due_accept(bot, data, update)
+            self.telegram_service.remove_inline_keybaord(bot, update.callback_query)
         elif len(data) > 1:
             self.telegram_service.remove_inline_keybaord(bot, update.callback_query)
             user_data[data[0]] = int(data[1])
@@ -309,25 +316,50 @@ class DoForMeBot:
             if selected:
                 user_data['due'] = date
                 if user_data['task_id']:
-                    self._edit_due(bot, date, update, user_data)
+                    self._edit_due_request(bot, date, update, user_data)
                 else:
                     self._do_add_task(bot, update.callback_query.message, user_data)
                 user_data.clear()
 
         update.callback_query.answer()
 
-    def _edit_due(self, bot, date, update, user_data):
+    def _edit_due_request(self, bot, date, update, user_data):
         task = self.task_service.get_task(user_data['task_id'])
-        prev_due = task.due
-        self.task_service.update_due_date(task.id, date)
-        chat_id = task.chat_id
-        user_name = self.telegram_service.get_mention(bot, chat_id, task.user_id)
+        user_id = update.effective_user.id
+        user_name = self.telegram_service.get_mention(bot, task.chat_id, user_id)
+        date_str = date.strftime(self._date_format)
+        data = f":{task.id}\nuser_id:{user_id}\ndate:{date_str}"
+        reply_markup = InlineKeyboardMarkup(
+            [[InlineKeyboardButton(text=self.texts['btn-accept'],
+                                   callback_data=f"edit-due-accept" + data),
+              InlineKeyboardButton(text=self.texts['btn-deny'],
+                                   callback_data=f"edit-due-deny" + data)]],
+            one_time_keyboard=True)
         bot.send_message(
-            chat_id, self.texts['updated-task-tue-to-group'](user_name, task.title, prev_due, date),
+            task.owner_id,
+            self.texts['update-task-due-request'](user_name, task.title, task.due, date),
+            parse_mode=telegram.ParseMode.MARKDOWN, reply_markup=reply_markup)
+        update.callback_query.message.reply_text(self.texts['updated-task-requested'](user_name),
+                                                 quote=False, parse_mode=telegram.ParseMode.MARKDOWN)
+
+    def _edit_due_deny(self, bot, data, update):
+        new_due, requestee_name, requestor_name, task = self._get_edit_due_request_data(bot, data, update)
+        bot.send_message(task.chat_id,
+                         self.texts['update-task-due-denied'](
+                             requestee_name, requestor_name, task.title, task.due, new_due),
+                         parse_mode=telegram.ParseMode.MARKDOWN)
+        update.callback_query.message.reply_text(self.texts['update-denied'])
+
+    def _edit_due_accept(self, bot, data, update):
+        new_due, requestee_name, requestor_name, task = self._get_edit_due_request_data(bot, data, update)
+        prev_due = task.due
+        self.task_service.update_due_date(task.id, new_due)
+        chat_id = task.chat_id
+        bot.send_message(
+            chat_id, self.texts['update-task-due-accepted'](
+                requestee_name, requestor_name, task.title, prev_due, new_due),
             parse_mode=telegram.ParseMode.MARKDOWN)
-        update.callback_query.message.reply_text(self.texts['updated-task'],
-                                                 quote=False, parse_mode=telegram.ParseMode.MARKDOWN,
-                                                 reply_markup=ReplyKeyboardRemove())
+        update.callback_query.message.reply_text(self.texts['update-granted'])
 
     def _job_daily_tasks_show_all(self, bot, update):
         self._show_task_overviews(bot, True)
@@ -434,3 +466,12 @@ class DoForMeBot:
             stats['done']['count'], stats['done']['onTime'], stats['done']['late']) + \
                "\n" + self.texts['tasks-stats-open'](
             stats['open']['count'], stats['open']['onTime'], stats['open']['late'])
+
+    def _get_edit_due_request_data(self, bot, data, update):
+        task = self.task_service.get_task(data[1])
+        requestee_id = update.effective_user.id
+        requestee_name = self.telegram_service.get_mention(bot, task.chat_id, requestee_id)
+        requestor_id = data[3]
+        requestor_name = self.telegram_service.get_mention(bot, task.chat_id, requestor_id)
+        new_due = datetime.strptime(data[5], self._date_format)
+        return new_due, requestee_name, requestor_name, task
