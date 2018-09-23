@@ -326,7 +326,6 @@ class DoForMeBot:
     def _edit_due_request(self, bot, date, update, user_data):
         task = self.task_service.get_task(user_data['task_id'])
         user_id = update.effective_user.id
-        user_name = self.telegram_service.get_mention(bot, task.chat_id, user_id)
         date_str = date.strftime(self._date_format)
         data = f":{task.id}\nuser_id:{user_id}\ndate:{date_str}"
         reply_markup = InlineKeyboardMarkup(
@@ -336,6 +335,7 @@ class DoForMeBot:
                                    callback_data=f"edit-due-deny" + data)]],
             one_time_keyboard=True)
         requestee_id = task.user_id if user_id == task.owner_id else task.owner_id
+        user_name = self.telegram_service.get_mention(bot, task.chat_id, requestee_id)
         bot.send_message(
             requestee_id,
             self.texts['update-task-due-request'](user_name, task.title, task.due, date),
