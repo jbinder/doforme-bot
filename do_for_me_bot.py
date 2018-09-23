@@ -138,8 +138,8 @@ class DoForMeBot:
             return
 
         user_id = update.effective_user.id
-        tasks = [task for task in self.task_service.get_tasks(user_id) if not task.done]
 
+        tasks = [task for task in self.task_service.get_tasks(user_id) if not task.done]
         update.message.reply_text(f"{self.texts['task-headline-assigned']}:")
         if len(tasks) < 1:
             update.message.reply_text(self.texts['no-tasks'])
@@ -147,19 +147,19 @@ class DoForMeBot:
         for task in tasks:
             task_summary = self.texts['task-line-summary'](task, bot.getChat(task.chat_id).title,
                                                            bot.getChatMember(task.chat_id, task.owner_id).user.name)
-            markup = self._get_task_markup(task)
+            markup = self._get_assigned_task_markup(task)
             update.message.reply_text(task_summary, reply_markup=markup)
 
         tasks = [task for task in self.task_service.get_owning_tasks(user_id) if not task.done]
-        text = f"{self.texts['task-headline-owning']}:\n"
+        update.message.reply_text(f"{self.texts['task-headline-owning']}:\n")
         if len(tasks) < 1:
-            text = text + self.texts['no-tasks']
-        else:
-            text = text + "\n".join(
-                [self.texts['task-line-owning-summary'](task, bot.getChat(task.chat_id).title,
-                                                        bot.getChatMember(task.chat_id, task.owner_id).user.name)
-                 for task in tasks])
-        update.message.reply_text(text)
+            update.message.reply_text(self.texts['no-tasks'])
+        for task in tasks:
+            task_summary = self.texts['task-line-summary'](task, bot.getChat(task.chat_id).title,
+                                                           bot.getChatMember(task.chat_id, task.user_id).user.name)
+            markup = self._get_owned_task_markup(task)
+            update.message.reply_text(task_summary, reply_markup=markup)
+
 
     @show_typing
     def _stats_show(self, bot, update):
@@ -335,8 +335,9 @@ class DoForMeBot:
               InlineKeyboardButton(text=self.texts['btn-deny'],
                                    callback_data=f"edit-due-deny" + data)]],
             one_time_keyboard=True)
+        requestee_id = task.user_id if user_id == task.owner_id else task.owner_id
         bot.send_message(
-            task.owner_id,
+            requestee_id,
             self.texts['update-task-due-request'](user_name, task.title, task.due, date),
             parse_mode=telegram.ParseMode.MARKDOWN, reply_markup=reply_markup)
         update.callback_query.message.reply_text(self.texts['updated-task-requested'](user_name),
@@ -385,10 +386,15 @@ class DoForMeBot:
             return False
         return True
 
-    def _get_task_markup(self, task):
+    def _get_assigned_task_markup(self, task):
         return InlineKeyboardMarkup(
             [[InlineKeyboardButton(text=self.texts['btn-complete'], callback_data=f"complete:{task.id}"),
               InlineKeyboardButton(text=self.texts['btn-edit-date'], callback_data=f"edit-date:{task.id}")]],
+            one_time_keyboard=True)
+
+    def _get_owned_task_markup(self, task):
+        return InlineKeyboardMarkup(
+            [[InlineKeyboardButton(text=self.texts['btn-edit-date'], callback_data=f"edit-date:{task.id}")]],
             one_time_keyboard=True)
 
     def _show_task_overviews(self, bot, show_future_tasks):

@@ -48,8 +48,6 @@ texts = {'help': "Use\n"
          'summary-due-undefined': "Undefined",
          'task-line-summary': lambda task, chat_name, owner_name:
          (f"{task.due.date()} - " if task.due else "") + f"{chat_name} - {task.title} ({owner_name})",
-         'task-line-owning-summary': lambda task, chat_name, user_name:
-         (f"{task.due.date()} - " if task.due else "") + f"{chat_name} - {task.title} ({user_name})",
          'task-line': lambda chat_title, title, owner_name: f"๏ {chat_title}: {title} from {owner_name}",
          'task-line-group': lambda task, user_name, owner_name: f"๏ " + (f"{task.due.date()} - " if task.due else "") +
                                                                 f"{task.title} from {owner_name} for {user_name}",
