@@ -86,7 +86,7 @@ texts = {'help': "Use\n"
          'feedback-none': "Currently there is no open feedback, enjoy!",
          'feedback-new': "There is new feedback!",
          'feedback-reply-prefix': "Hi, there is a reply from the doforme-team to your feedback:",
-         'feedback-reply-postfix': "If you want to reply to this message, please use the feedback command!",
+         'feedback-reply-postfix': "If you want to reply to this message, please use the /feedback command!",
          'feedback-reply-sent': "I sent your reply to the user!",
          'announcement-prefix': "Hi, there is an announcement from the doforme-team:",
          'announcement-sent': lambda num_users: f"Your announcement has been sent to {num_users} users!",

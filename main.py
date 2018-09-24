@@ -7,17 +7,18 @@ from services.task_service import TaskService
 from services.telegram_service import TelegramService
 from services.user_service import UserService
 from texts import texts, bot_name
-from utils.app_lock import AppLock
+from utils.socket_app_lock import SocketAppLock
 
 
 def main():
     logger = get_logger()
-    lock_name = "main.lock"
-    app_lock = AppLock(lock_name, logger)
-    if not app_lock.lock():
-        print(f"The bot already has been started or did not shutdown correctly. "
-              f"Please stop the running bot / remove the {lock_name} file.")
-        return
+    if not __debug__:
+        lock_name = "doforme.doforme-bot.main.lock"
+        app_lock = SocketAppLock(lock_name, logger)
+        if not app_lock.lock():
+            print(f"The bot already has been started or did not shutdown correctly. "
+                  f"Please stop the running bot / remove the {lock_name} file.")
+            return
     args = get_args()
     user_service = UserService()
     task_service = TaskService()
@@ -26,7 +27,8 @@ def main():
     bot = DoForMeBot(bot_name, texts, telegram_service, task_service, user_service, feedback_service,
                      args.admin_id, logger)
     bot.run(args.token)
-    app_lock.unlock()
+    if not __debug__:
+        app_lock.unlock()
 
 
 def get_args():
