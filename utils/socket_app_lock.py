@@ -1,3 +1,4 @@
+import os
 import socket
 from logging import Logger
 
@@ -29,7 +30,7 @@ class SocketAppLock(AppLock):
     def _set_locked(self):
         try:
             self.lock_socket = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-            self.lock_socket.bind('\0' + self.lock_name)
+            self.lock_socket.bind(os.path.join(os.getcwd(), self.lock_name))
             return True
         except socket.error:
             return False
