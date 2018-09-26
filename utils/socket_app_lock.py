@@ -30,10 +30,16 @@ class SocketAppLock(AppLock):
     def _set_locked(self):
         try:
             self.lock_socket = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-            self.lock_socket.bind(os.path.join(os.getcwd(), self.lock_name))
+            self.lock_socket.bind(self._get_lockfile_name())
             return True
         except socket.error:
             return False
 
+    def _get_lockfile_name(self):
+        return os.path.join(os.getcwd(), self.lock_name)
+
     def _set_unlocked(self):
-        raise NotImplementedError
+        self.lock_socket.shutdown(socket.SHUT_RDWR)
+        self.lock_socket.close()
+        os.remove(self._get_lockfile_name())
+
