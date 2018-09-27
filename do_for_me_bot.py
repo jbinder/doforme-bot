@@ -315,7 +315,7 @@ class DoForMeBot:
             selected, date = telegramcalendar.process_calendar_selection(bot, update)
             if selected:
                 user_data['due'] = date
-                if user_data['task_id']:
+                if 'task_id' in user_data:
                     self._edit_due_request(bot, date, update, user_data)
                 else:
                     self._do_add_task(bot, update.callback_query.message, user_data)
