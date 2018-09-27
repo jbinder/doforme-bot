@@ -56,7 +56,12 @@ texts = {'help': "Use\n"
                                        f"to view all of your assigned tasks!",
          'task-headline-assigned': "Tasks you have been assigned",
          'task-headline-owning': "Your tasks for others",
-         'task-review': lambda chat_title: f"This happened this week here at {chat_title}",
+         'task-review': lambda chat_title: f"The following happened this week here at {chat_title}",
+         'task-review-summary': lambda num_created, num_done, in_time:
+         f"Overall, {num_created} task" + ("s have" if num_created != 1 else " has") + " been created, "
+         f"{num_done} task" + ("s have" if num_done != 1 else " has") + " been completed" +
+         (f" ({in_time}% in time)." if num_done > 0 else "."),
+         'task-review-done-tasks': f"Tasks that have been completed:",
          'task-review-motivation': f"All of you, keep up your great work!",
          'task-line-review': lambda title, user_name, owner_name: f"๏ {user_name} completed {title} from {owner_name}",
          'task-line-review-in-time': lambda in_time: f"in time!" if in_time else "a little late.",
@@ -91,4 +96,5 @@ texts = {'help': "Use\n"
          'announcement-prefix': "Hi, there is an announcement from the doforme-team:",
          'announcement-sent': lambda num_users: f"Your announcement has been sent to {num_users} users!",
          'admin': "Admin",
+         'nothing': "Nothing.",
          }

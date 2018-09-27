@@ -114,6 +114,23 @@ class TaskService:
         return self._get_stats(tasks_query)
 
     @db_session
+    def get_stats(self, chat_id, date_from=None, date_to=None):
+        """ :returns Stats for both created and done tasks in the specified time range. """
+        created_tasks_query = select(task for task in Task if task.chat_id == chat_id)
+        if date_from is not None:
+            created_tasks_query = created_tasks_query.where(lambda task: task.created >= date_from)
+        if date_to is not None:
+            created_tasks_query = created_tasks_query.where(lambda task: task.created <= date_to)
+        created_tasks = self._get_stats(created_tasks_query)
+        done_tasks_query = select(task for task in Task)
+        if date_from is not None:
+            done_tasks_query = done_tasks_query.where(lambda task: task.done >= date_from)
+        if date_to is not None:
+            done_tasks_query = done_tasks_query.where(lambda task: task.done <= date_to)
+        done_tasks = self._get_stats(done_tasks_query)
+        return created_tasks, done_tasks
+
+    @db_session
     def update_due_date(self, task_id, due):
         Task[task_id].due = due
         commit()

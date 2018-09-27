@@ -160,7 +160,6 @@ class DoForMeBot:
             markup = self._get_owned_task_markup(task)
             update.message.reply_text(task_summary, reply_markup=markup)
 
-
     @show_typing
     def _stats_show(self, bot, update):
         if self.telegram_service.is_private_chat(update):
@@ -423,19 +422,30 @@ class DoForMeBot:
 
     def _show_weekly_review(self, bot):
         for chat_id in self.user_service.get_all_chats():
-            tasks = [task for task in self.task_service.get_tasks_for_chat(chat_id)
-                     if task.done and task.done.date() > datetime.today().date() - timedelta(days=7)]
-            if len(tasks) > 0:
-                activity_counter = Counter([task.user_id for task in tasks])
-                most_busy = activity_counter.most_common(1)[0][1]
-                most_busy_users = [bot.getChatMember(chat_id, user_id).user.name
-                                   for (user_id, count) in activity_counter.items() if count == most_busy]
-                user_names = " and ".join(most_busy_users)
-                message = f"{self.texts['task-review'](bot.getChat(chat_id).title)}:\n" \
-                          f"{self._to_review_task_list(bot, tasks)}\n\n" \
-                          f"{self.texts['task-review-most-busy'](user_names, len(most_busy_users) > 1)}\n\n" \
-                          f"{self.texts['task-review-motivation']}"
-                bot.send_message(chat_id, message)
+            message = f"{self.texts['task-review'](bot.getChat(chat_id).title)}:\n\n"
+
+            stats = self.task_service.get_stats(chat_id, datetime.now() - timedelta(days=7), datetime.now())
+            if stats[0]['count'] > 0 or stats[1]['count'] > 0:
+                done_percent = 100 * (stats[1]['done']['onTime'] / stats[1]['done']['count']) \
+                    if stats[1]['count'] > 0 else 0
+                message = message + \
+                          f"{self.texts['task-review-summary'](stats[0]['count'], stats[1]['count'], done_percent)}\n\n"
+                tasks = [task for task in self.task_service.get_tasks_for_chat(chat_id)
+                         if task.done and task.done > datetime.now() - timedelta(days=7)]
+                if len(tasks) > 0:
+                    activity_counter = Counter([task.user_id for task in tasks])
+                    most_busy = activity_counter.most_common(1)[0][1]
+                    most_busy_users = [bot.getChatMember(chat_id, user_id).user.name
+                                       for (user_id, count) in activity_counter.items() if count == most_busy]
+                    user_names = " and ".join(most_busy_users)
+                    message = message + self.texts['task-review-done-tasks'] + "\n" + \
+                              f"{self._to_review_task_list(bot, tasks)}\n\n" \
+                              f"{self.texts['task-review-most-busy'](user_names, len(most_busy_users) > 1)}\n\n" \
+                              f"{self.texts['task-review-motivation']}"
+            else:
+                message = message + self.texts['nothing']
+
+            bot.send_message(chat_id, message)
 
     def _get_chat_tasks(self, bot, chat_id):
         tasks = [task for task in self.task_service.get_tasks_for_chat(chat_id) if not task.done]
