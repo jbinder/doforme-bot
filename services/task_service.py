@@ -36,14 +36,15 @@ class TaskService:
     def get_due_today(self, user_id):
         # noinspection PyTypeChecker
         return select(task for task in Task
-                      if (task.user_id == user_id) and (task.done is None) and (task.due.date() == datetime.today().date())
-                      ).order_by(lambda t: t.due)[:]
+                      if (task.user_id == user_id) and (task.done is None) and
+                      (task.due.date() == datetime.today().date())).order_by(lambda t: t.due)[:]
 
     @db_session
     def get_due_this_week(self, user_id):
         # noinspection PyTypeChecker
         return select(task for task in Task
-                      if (task.user_id == user_id) and (task.done is None) and (task.due.date() > datetime.today().date()) and
+                      if (task.user_id == user_id) and (task.done is None) and
+                      (task.due.date() > datetime.today().date()) and
                       (task.due.date() <= datetime.today() + timedelta(days=7))
                       ).order_by(lambda t: t.due)[:]
 
@@ -51,14 +52,16 @@ class TaskService:
     def get_due_later_than_this_week(self, user_id):
         # noinspection PyTypeChecker
         return select(task for task in Task
-                      if (task.user_id == user_id) and (task.done is None) and (task.due.date() > datetime.today().date() + timedelta(days=7))
+                      if (task.user_id == user_id) and (task.done is None) and
+                      (task.due.date() > datetime.today().date() + timedelta(days=7))
                       ).order_by(lambda t: t.due)[:]
 
     @db_session
     def get_due_past(self, user_id):
         # noinspection PyTypeChecker
         return select(task for task in Task
-                      if (task.user_id == user_id) and (task.done is None) and (task.due.date() < datetime.today().date())
+                      if (task.user_id == user_id) and (task.done is None) and
+                      (task.due.date() < datetime.today().date())
                       ).order_by(lambda t: t.due)[:]
 
     @db_session
@@ -116,15 +119,17 @@ class TaskService:
     @db_session
     def get_stats(self, chat_id, date_from=None, date_to=None):
         """ :returns Stats for both created and done tasks in the specified time range. """
+        # noinspection PyTypeChecker
         created_tasks_query = select(task for task in Task if task.chat_id == chat_id)
         if date_from is not None:
-            created_tasks_query = created_tasks_query.where(lambda task: task.created >= date_from)
+            created_tasks_query = created_tasks_query.where(lambda task: task.created > date_from)
         if date_to is not None:
             created_tasks_query = created_tasks_query.where(lambda task: task.created <= date_to)
         created_tasks = self._get_stats(created_tasks_query)
+        # noinspection PyTypeChecker
         done_tasks_query = select(task for task in Task)
         if date_from is not None:
-            done_tasks_query = done_tasks_query.where(lambda task: task.done >= date_from)
+            done_tasks_query = done_tasks_query.where(lambda task: task.done > date_from)
         if date_to is not None:
             done_tasks_query = done_tasks_query.where(lambda task: task.done <= date_to)
         done_tasks = self._get_stats(done_tasks_query)
@@ -160,5 +165,5 @@ class TaskService:
             'onTime': tasks_query.filter(lambda task: task.due is None or task.done.date() <= task.due.date()).count(),
             'late': tasks_query.filter(lambda task: task.due is not None and task.done.date() > task.due.date()).count()
         }
+        done['onTimePercent'] = 100 * (done['onTime'] / done['count']) if done['count'] > 0 else 0
         return done
-

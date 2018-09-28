@@ -58,9 +58,13 @@ texts = {'help': "Use\n"
          'task-headline-owning': "Your tasks for others",
          'task-review': lambda chat_title: f"The following happened this week here at {chat_title}",
          'task-review-summary': lambda num_created, num_done, in_time:
-         f"Overall, {num_created} task" + ("s have" if num_created != 1 else " has") + " been created, "
+         f"Overall {num_created} task" + ("s have" if num_created != 1 else " has") + " been created and "
          f"{num_done} task" + ("s have" if num_done != 1 else " has") + " been completed" +
          (f" ({in_time}% in time)." if num_done > 0 else "."),
+         'task-review-comparison': lambda num_created, num_done, in_time:
+         f"Compared to the previous week this is " + ("an increase" if num_created > 0 else "a decrease") +
+         f" of created tasks by {abs(num_created)}, and " + ("an increase" if num_done > 0 else "a decrease") +
+         f" of completed tasks by {abs(num_done)}.",
          'task-review-done-tasks': f"Tasks that have been completed:",
          'task-review-motivation': f"All of you, keep up your great work!",
          'task-line-review': lambda title, user_name, owner_name: f"๏ {user_name} completed {title} from {owner_name}",

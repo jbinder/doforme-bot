@@ -424,14 +424,22 @@ class DoForMeBot:
         for chat_id in self.user_service.get_all_chats():
             message = f"{self.texts['task-review'](bot.getChat(chat_id).title)}:\n\n"
 
-            stats = self.task_service.get_stats(chat_id, datetime.now() - timedelta(days=7), datetime.now())
+            now = datetime.now()
+            last_week = now - timedelta(days=7)
+            week_before = last_week - timedelta(days=7)
+            stats = self.task_service.get_stats(chat_id, last_week, now)
+            previous_stats = self.task_service.get_stats(chat_id, week_before, last_week)
             if stats[0]['count'] > 0 or stats[1]['count'] > 0:
-                done_percent = 100 * (stats[1]['done']['onTime'] / stats[1]['done']['count']) \
-                    if stats[1]['count'] > 0 else 0
+                on_time = stats[1]['done']['onTimePercent']
+                created_change = previous_stats[0]['count'] - stats[0]['count']
+                done_change = previous_stats[1]['count'] - stats[1]['count']
+                on_time_change = previous_stats[1]['done']['onTimePercent'] / on_time if on_time > 0 else \
+                    previous_stats[1]['done']['onTimePercent']
                 message = message + \
-                          f"{self.texts['task-review-summary'](stats[0]['count'], stats[1]['count'], done_percent)}\n\n"
+                          f"{self.texts['task-review-summary'](stats[0]['count'], stats[1]['count'], on_time)} " \
+                          f"{self.texts['task-review-comparison'](created_change, done_change, on_time_change)}\n\n"
                 tasks = [task for task in self.task_service.get_tasks_for_chat(chat_id)
-                         if task.done and task.done > datetime.now() - timedelta(days=7)]
+                         if task.done and task.done > last_week]
                 if len(tasks) > 0:
                     activity_counter = Counter([task.user_id for task in tasks])
                     most_busy = activity_counter.most_common(1)[0][1]
