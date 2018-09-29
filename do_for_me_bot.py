@@ -1,10 +1,12 @@
 import re
 from collections import Counter
 from datetime import time, datetime, timedelta
+from queue import Queue
+from threading import Thread
 
 import telegram
-from telegram import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove
-from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackQueryHandler, Filters
+from telegram import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove, Bot
+from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackQueryHandler, Filters, Dispatcher
 from telegram.ext.jobqueue import Days
 
 from decorators.show_typing import show_typing
@@ -36,9 +38,15 @@ class DoForMeBot:
         self.logger = logger
         self._date_format = "%Y-%m-%d"
 
-    def run(self, token):
-        updater = Updater(token)
-        dp = updater.dispatcher
+    def run(self, token, webhook_url=None):
+        if webhook_url:
+            bot = Bot(token)
+            update_queue = Queue()
+            dp = Dispatcher(bot, update_queue)
+        else:
+            updater = Updater(token)
+            bot = updater.bot
+            dp = updater.dispatcher
 
         cmd_handlers = [
             ('start', self._help_show, False),
@@ -76,8 +84,15 @@ class DoForMeBot:
 
         dp.add_error_handler(self._error_handler)
 
-        updater.start_polling()
-        updater.idle()
+        if webhook_url:
+            bot.set_webhook(webhook_url=webhook_url)
+            thread = Thread(target=dp.start, name='dispatcher')
+            thread.start()
+            return update_queue, bot
+        else:
+            bot.set_webhook()
+            updater.start_polling()
+            updater.idle()
 
     @show_typing
     def _help_show(self, bot, update):
