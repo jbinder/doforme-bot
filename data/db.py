@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 
 from pony.orm import Database, Required, Optional
@@ -32,6 +33,16 @@ class Feedback(db.Entity):
     done = Optional(datetime)
 
 
-db.bind(provider='sqlite', filename='database.sqlite', create_db=True)
+if 'DFM_DB_USERNAME' in os.environ:
+    # use mysql
+    host = os.environ.get('DFM_DB_HOST', 'localhost')
+    port = int(os.environ.get('DFM_DB_PORT', 3306))
+    username = os.environ['DFM_DB_USERNAME']
+    password = os.environ['DFM_DB_PASSWORD']
+    database = os.environ['DFM_DB_DATABASE']
+    db.bind(provider='mysql', host=host, user=username, passwd=password, db=database, port=port)
+else:
+    # use sqlite as fallback
+    db.bind(provider='sqlite', filename='database.sqlite', create_db=True)
 db.generate_mapping(create_tables=True)
 
