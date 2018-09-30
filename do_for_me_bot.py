@@ -87,6 +87,7 @@ class DoForMeBot:
 
         if webhook_url:
             bot.set_webhook(webhook_url=webhook_url)
+            job_queue.start()
             thread = Thread(target=dp.start, name='dispatcher')
             thread.start()
             return update_queue, bot
