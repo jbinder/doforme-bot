@@ -43,7 +43,7 @@ class DoForMeBot:
             bot = Bot(token)
             update_queue = Queue()
             job_queue = JobQueue(bot)
-            dp = Dispatcher(bot, update_queue, job_queue)
+            dp = Dispatcher(bot, update_queue, job_queue=job_queue)
         else:
             updater = Updater(token)
             bot = updater.bot
