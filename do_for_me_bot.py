@@ -281,7 +281,8 @@ class DoForMeBot:
         if len(update.message.new_chat_members) < 1:
             if update.effective_chat.type == "private":
                 if len(self.telegram_service.get_chats(bot, update.effective_user.id)) < 1:
-                    update.message.reply_text(self.texts['add-to-group'])
+                    bot.send_message(chat_id, text=self.texts['add-to-group'])
+                    # update.message.reply_text(self.texts['add-to-group'])
                 else:
                     update.message.reply_text(self.texts['help'])
             else:
