@@ -7,7 +7,7 @@ from threading import Thread
 import telegram
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove, Bot
 from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackQueryHandler, Filters, Dispatcher
-from telegram.ext.jobqueue import Days
+from telegram.ext.jobqueue import Days, JobQueue
 
 from decorators.show_typing import show_typing
 from libraries.telegramcalendar import telegramcalendar
@@ -42,7 +42,8 @@ class DoForMeBot:
         if webhook_url:
             bot = Bot(token)
             update_queue = Queue()
-            dp = Dispatcher(bot, update_queue)
+            job_queue = JobQueue(bot)
+            dp = Dispatcher(bot, update_queue, job_queue)
         else:
             updater = Updater(token)
             bot = updater.bot
