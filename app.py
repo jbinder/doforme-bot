@@ -1,6 +1,5 @@
 import logging
 import os
-import texts
 from flask import Flask, request
 from telegram import Update
 from do_for_me_bot import DoForMeBot
@@ -8,7 +7,7 @@ from services.feedback_service import FeedbackService
 from services.task_service import TaskService
 from services.telegram_service import TelegramService
 from services.user_service import UserService
-from texts import bot_name
+from texts import texts, bot_name
 
 
 def get_logger():
