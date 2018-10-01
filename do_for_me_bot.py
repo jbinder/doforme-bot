@@ -351,12 +351,13 @@ class DoForMeBot:
                                    callback_data=f"edit-due-deny" + data)]],
             one_time_keyboard=True)
         requestee_id = task.user_id if user_id == task.owner_id else task.owner_id
-        user_name = self.telegram_service.get_mention(bot, task.chat_id, requestee_id)
+        requestee_name = self.telegram_service.get_mention(bot, task.chat_id, requestee_id)
+        requestor_name = self.telegram_service.get_mention(bot, task.chat_id, user_id)
         bot.send_message(
             requestee_id,
-            self.texts['update-task-due-request'](user_name, task.title, task.due, date),
+            self.texts['update-task-due-request'](requestor_name, task.title, task.due, date),
             parse_mode=telegram.ParseMode.MARKDOWN, reply_markup=reply_markup)
-        update.callback_query.message.reply_text(self.texts['updated-task-requested'](user_name),
+        update.callback_query.message.reply_text(self.texts['updated-task-requested'](requestee_name),
                                                  quote=False, parse_mode=telegram.ParseMode.MARKDOWN)
 
     def _edit_due_deny(self, bot, data, update):

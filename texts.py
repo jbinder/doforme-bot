@@ -28,7 +28,7 @@ texts = {'help': "Use\n"
                                                      f"from {prev_due.date()} to {due.date()}.",
          'update-task-due-accepted':
              lambda requestee_name, requestor_name, title, prev_due, due:
-             f"{requestee_name} accepted {requestor_name}'s request to change the due of {title} "
+             f"{requestee_name} accepted {requestor_name}'s request to change the due date of {title} "
              f"from {prev_due.date()} to {due.date()}.",
          'update-task-due-denied':
              lambda requestee_name, requestor_name, title, prev_due, due:
