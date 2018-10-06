@@ -22,13 +22,16 @@ Features
 Install
 -------
 
-* Python 3.6
-* pip install -r requirements.txt
+* Requires Python 3.6
+* Install dependencies: pip install -r requirements.txt
 * Register the bot with privacy status 'disabled'
 
 
 Run
 ---
+
+The bot can be run using as console (polling, recommended for local testing)
+as well as web app (webhook, for deployment).
 
 ### Console
 

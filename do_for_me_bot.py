@@ -426,7 +426,8 @@ class DoForMeBot:
         due_this_week = self.task_service.get_due_this_week(user_id)
         due_later_than_this_week = self.task_service.get_due_later_than_this_week(user_id)
         due_undefined = self.task_service.get_due_undefined(user_id)
-        summary = (f"{self.texts['summary-overdue']}:\n{self._to_task_list(bot, due_past)}\n\n" if due_past else "") + \
+        summary = f"{self.texts['summary-headline']}:\n\n" + \
+                  (f"{self.texts['summary-overdue']}:\n{self._to_task_list(bot, due_past)}\n\n" if due_past else "") + \
                   (f"{self.texts['summary-due-today']}:\n{self._to_task_list(bot, due_today)}\n\n" if due_today else "")
         if show_future_tasks:
             summary += (f"{self.texts['summary-due-this-week']}:\n" +
@@ -449,8 +450,8 @@ class DoForMeBot:
             previous_stats = self.task_service.get_stats(chat_id, week_before, last_week)
             if stats[0]['count'] > 0 or stats[1]['count'] > 0:
                 on_time = stats[1]['done']['onTimePercent']
-                created_change = previous_stats[0]['count'] - stats[0]['count']
-                done_change = previous_stats[1]['count'] - stats[1]['count']
+                created_change = stats[0]['count'] - previous_stats[0]['count']
+                done_change = stats[1]['count'] - previous_stats[1]['count']
                 on_time_change = previous_stats[1]['done']['onTimePercent'] / on_time if on_time > 0 else \
                     previous_stats[1]['done']['onTimePercent']
                 message = message + \

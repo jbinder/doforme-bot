@@ -41,6 +41,7 @@ texts = {'help': "Use\n"
          'btn-edit-date': "Edit date",
          'btn-accept': "Accept",
          'btn-deny': "Deny",
+         'summary-headline': "Your open tasks",
          'summary-overdue': "Overdue!!!!",
          'summary-due-today': "Due today",
          'summary-due-this-week': "This week",
@@ -62,8 +63,8 @@ texts = {'help': "Use\n"
          f"{num_done} task" + ("s have" if num_done != 1 else " has") + " been completed" +
          (f" ({in_time}% in time)." if num_done > 0 else "."),
          'task-review-comparison': lambda num_created, num_done, in_time:
-         f"Compared to the previous week this is " + ("an increase" if num_created > 0 else "a decrease") +
-         f" of created tasks by {abs(num_created)}, and " + ("an increase" if num_done > 0 else "a decrease") +
+         f"Compared to the previous week this is " + ("an increase" if num_created >= 0 else "a decrease") +
+         f" of created tasks by {abs(num_created)}, and " + ("an increase" if num_done >= 0 else "a decrease") +
          f" of completed tasks by {abs(num_done)}.",
          'task-review-done-tasks': f"Tasks that have been completed:",
          'task-review-motivation': f"All of you, keep up your great work!",
