@@ -107,4 +107,5 @@ venv.bak/
 .idea
 *.sqlite
 *.bak
+*.sql
 

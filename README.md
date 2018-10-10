@@ -56,6 +56,8 @@ To use a MySQL database instead the default SQLite (data/database.sqlite) databa
 * DFM_DB_PASSWORD
 * DFM_DB_DATABASE
 
+Note: The character set of the database needs to be set to utf8mb4!
+
 
 Usage
 -----
