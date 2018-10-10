@@ -127,7 +127,7 @@ class TaskService:
             created_tasks_query = created_tasks_query.where(lambda task: task.created <= date_to)
         created_tasks = self._get_stats(created_tasks_query)
         # noinspection PyTypeChecker
-        done_tasks_query = select(task for task in Task)
+        done_tasks_query = select(task for task in Task if task.chat_id == chat_id and task.done is not None)
         if date_from is not None:
             done_tasks_query = done_tasks_query.where(lambda task: task.done > date_from)
         if date_to is not None:

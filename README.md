@@ -69,6 +69,14 @@ The admin id is a Telegram user id and allows the specified user to perform foll
 * admin-feedback-close ([id]): Marks feedback [id] as done.
 
 
+Development
+-----------
+
+Run the tests using:
+
+    python -m unittest
+
+
 Libraries
 ---------
 
