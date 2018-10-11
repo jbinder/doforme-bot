@@ -66,6 +66,8 @@ texts = {'help': "Use\n"
          f"Compared to the previous week this is " + ("an increase" if num_created >= 0 else "a decrease") +
          f" of created tasks by {abs(num_created)}, and " + ("an increase" if num_done >= 0 else "a decrease") +
          f" of completed tasks by {abs(num_done)}.",
+         'task-review-user-stats': lambda user_name, num_done, on_time:
+         f"{user_name}: {num_done} done, {on_time}% on time",
          'task-review-done-tasks': f"Tasks that have been completed:",
          'task-review-motivation': f"All of you, keep up your great work!",
          'task-line-review': lambda title, user_name, owner_name: f"๏ {user_name} completed {title} from {owner_name}",
@@ -102,4 +104,5 @@ texts = {'help': "Use\n"
          'announcement-sent': lambda num_users: f"Your announcement has been sent to {num_users} users!",
          'admin': "Admin",
          'nothing': "Nothing.",
+         'ranking': "User ranking",
          }

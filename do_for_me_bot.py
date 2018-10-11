@@ -1,3 +1,4 @@
+import operator
 import re
 from collections import Counter
 from datetime import time, datetime, timedelta
@@ -468,11 +469,23 @@ class DoForMeBot:
                     user_names = " and ".join(most_busy_users)
                     message = message + self.texts['task-review-done-tasks'] + "\n" + \
                               f"{self._to_review_task_list(bot, tasks)}\n\n" \
-                              f"{self.texts['task-review-most-busy'](user_names, len(most_busy_users) > 1)}\n\n" \
-                              f"{self.texts['task-review-motivation']}"
+                              f"{self.texts['task-review-most-busy'](user_names, len(most_busy_users) > 1)}"
             else:
                 message = message + self.texts['nothing']
 
+            stats = []
+            message = message + f"\n\n{self.texts['ranking']}:\n"
+            for (user_id, user_name) in self.telegram_service.get_chat_users(bot, chat_id):
+                user_stats = self.task_service.get_stats(chat_id, user_id=user_id)
+                done = user_stats[1]['done']['count']
+                on_time = user_stats[1]['done']['onTimePercent']
+                stats.append([user_name, done, on_time])
+
+            stats.sort(key=operator.itemgetter(1, 2))
+            for user_name, done, on_time in stats:
+                message = message + self.texts['task-review-user-stats'](user_name, done, on_time) + "\n"
+
+            message = message + f"\n{self.texts['task-review-motivation']}"
             bot.send_message(chat_id, message)
 
     def _get_chat_tasks(self, bot, chat_id):

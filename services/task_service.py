@@ -151,7 +151,7 @@ class TaskService:
     @db_session
     @db_use_utf8mb
     @retry_on_error
-    def get_stats(self, chat_id, date_from=None, date_to=None):
+    def get_stats(self, chat_id, date_from=None, date_to=None, user_id=None):
         """ :returns Stats for both created and done tasks in the specified time range. """
         # noinspection PyTypeChecker
         created_tasks_query = select(task for task in Task if task.chat_id == chat_id)
@@ -159,6 +159,8 @@ class TaskService:
             created_tasks_query = created_tasks_query.where(lambda task: task.created > date_from)
         if date_to is not None:
             created_tasks_query = created_tasks_query.where(lambda task: task.created <= date_to)
+        if user_id is not None:
+            created_tasks_query = created_tasks_query.where(lambda task: task.user_id == user_id)
         created_tasks = self._get_stats(created_tasks_query)
         # noinspection PyTypeChecker
         done_tasks_query = select(task for task in Task if task.chat_id == chat_id and task.done is not None)
@@ -166,6 +168,8 @@ class TaskService:
             done_tasks_query = done_tasks_query.where(lambda task: task.done > date_from)
         if date_to is not None:
             done_tasks_query = done_tasks_query.where(lambda task: task.done <= date_to)
+        if user_id is not None:
+            done_tasks_query = done_tasks_query.where(lambda task: task.user_id == user_id)
         done_tasks = self._get_stats(done_tasks_query)
         return created_tasks, done_tasks
 

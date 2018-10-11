@@ -9,12 +9,16 @@ from pony.orm import db_session
 class TestTaskService(unittest.TestCase):
 
     chat_id: int
+    user1_id: int
+    user2_id: int
 
     @mock.patch.dict(os.environ, {'DFM_ENV': 'Test'})
     def setUp(self):
         from data.db import db
         from services.task_service import TaskService
         self.chat_id = 1
+        self.user1_id = 1
+        self.user2_id = 2
         self.service = TaskService()
         db.drop_all_tables(with_all_data=True)
         db.create_tables()
@@ -53,6 +57,18 @@ class TestTaskService(unittest.TestCase):
         expected_done_stats = self._get_expected_no_tasks_stats()
         self.assertEqual(expected_done_stats, done_stats, "Invalid done tasks stats.")
 
+    def test_stats_user_specific(self):
+        stats = self.service.get_stats(self.chat_id, user_id=self.user1_id)
+        expected_stats = (
+            {'count': 2,
+             'done': {'count': 1, 'late': 0, 'onTime': 1, 'onTimePercent': 100.0},
+             'open': {'count': 1, 'late': 0, 'onTime': 1}},
+            {'count': 1,
+             'done': {'count': 1, 'late': 0, 'onTime': 1, 'onTimePercent': 100.0},
+             'open': {'count': 0, 'late': 0, 'onTime': 0}}
+        )
+        self.assertEqual(expected_stats, stats)
+
     @staticmethod
     def _get_expected_no_tasks_stats():
         return {
@@ -76,19 +92,19 @@ class TestTaskService(unittest.TestCase):
 
     @db_session
     def _populate_database(self, db):
-        user1_id = 1
-        user2_id = 1
-        self._create_task(db, 'Task w2_done', user1_id, user2_id, self._get_date(-3), self._get_date(-5))
-        self._create_task(db, 'Task w2_open', user1_id, user2_id, self._get_date(-3), None)
+        self._create_task(db, 'Task w2_done', self.chat_id, self.user1_id, self.user2_id, self._get_date(-3),
+                          self._get_date(-5))
+        self._create_task(db, 'Task w2_open', self.chat_id, self.user1_id, self.user2_id, self._get_date(-3), None)
+        self._create_task(db, 'Task w2_open', 0, self.user1_id, self.user2_id, self._get_date(-3), None)
 
     @staticmethod
     def _get_date(offset_days):
         return datetime.utcnow() + timedelta(days=offset_days)
 
-    def _create_task(self, db, title, user1_id, user2_id, created, done):
+    def _create_task(self, db, title, chat_id, user1_id, user2_id, created, done):
         db.Task(
             user_id=user1_id,
-            chat_id=self.chat_id,
+            chat_id=chat_id,
             owner_id=user2_id,
             title=title,
             created=created,
