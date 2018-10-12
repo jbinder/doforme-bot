@@ -13,6 +13,11 @@ def show_typing(f):
         if not isinstance(update, Update):
             raise RuntimeError("Unable to attach decorator as the third argument is not an update object!")
         bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
-        return f(*args, **kw)
+        try:
+            return f(*args, **kw)
+        except Exception:
+            bot.send_message(update.message.chat_id,
+                             "Whoops, something happened... please try again or use /feedback to let us know.")
+            raise
 
     return decorator
