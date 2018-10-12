@@ -4,10 +4,8 @@ DoForMe
 A Telegram bot for assigning tasks to other people.
 It helps you keeping track of your own tasks as well as tasks that you assigned others.
 
-Just add it to a group and follow the instructions.
-
-:construction: Under construction!
-
+Try it out on [Telegram](https://telegram.me/doformebot) (Warning: things might break, use at your own risk!).
+Just add @doforme as contact, to a group, and follow the instructions.
 
 Features
 --------
