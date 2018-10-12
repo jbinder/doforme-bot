@@ -17,6 +17,9 @@ Features
 * Edit due date of tasks
 * Daily reminder of your open tasks
 * Weekly review
+* Privacy
+  * Task info is cleared as soon as it is not used anymore
+  * Leaving the group causes destruction of own data associated with that group
 
 
 Install

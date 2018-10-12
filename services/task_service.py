@@ -122,6 +122,16 @@ class TaskService:
     @db_session
     @db_use_utf8mb
     @retry_on_error
+    def clean_titles(self):
+        # noinspection PyTypeChecker
+        tasks = select(task for task in Task if task.done is not None and task.title != "-")[:]
+        for task in tasks:
+            task.title = "-"
+        commit()
+
+    @db_session
+    @db_use_utf8mb
+    @retry_on_error
     def get_user_stats(self, user_id):
         # noinspection PyTypeChecker
         owning_tasks_query = select(task for task in Task if task.owner_id == user_id)

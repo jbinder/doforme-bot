@@ -388,6 +388,7 @@ class DoForMeBot:
 
     def _job_weekly_review(self, bot, update):
         self._show_weekly_review(bot)
+        self.task_service.clean_titles()
 
     def _error_handler(self, bot, update, error):
         """Log Errors caused by Updates."""

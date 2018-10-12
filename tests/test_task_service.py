@@ -69,6 +69,12 @@ class TestTaskService(unittest.TestCase):
         )
         self.assertEqual(expected_stats, stats)
 
+    def test_clean_titles(self):
+        self.service.clean_titles()
+        tasks = self.service.get_tasks(self.user1_id)
+        for task in tasks:
+            self.assertEqual(task.done is None, task.title != "-")
+
     @staticmethod
     def _get_expected_no_tasks_stats():
         return {
