@@ -1,6 +1,4 @@
-import logging
-
-from components.core import texts
+from common.utils.logging_tools import get_logger
 from common.texts import bot_name
 from components.announce.announce_command_handler import AnnounceCommandHandler
 from components.announce.announce_component import AnnounceComponent
@@ -18,20 +16,13 @@ from components.feedback.feedback_component import FeedbackComponent
 from components.feedback.feedback_service import FeedbackService
 from components.user.user_command_handler import UserCommandHandler
 from components.user.user_component import UserComponent
-from do_for_me_bot import DoForMeBot
+from common.common_bot import CommonBot
 from components.doforme.task_service import TaskService
 from common.services.telegram_service import TelegramService
 from components.user.user_service import UserService
 
 
-def get_logger():
-    logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                        level=logging.INFO)
-    return logging.getLogger(__name__)
-
-
 def create_bot(admin_id: int):
-    logger = get_logger()
     user_service = UserService()
     telegram_service = TelegramService(user_service)
     core_command_handler = CoreCommandHandler(admin_id, core_texts, telegram_service)
@@ -49,5 +40,5 @@ def create_bot(admin_id: int):
         'announce': AnnounceComponent(announce_command_handler),
         'doforme': DoForMeComponent(doforme_command_handler),
     }
-    bot = DoForMeBot(bot_name, texts.texts, components, admin_id, logger, user_service)
+    bot = CommonBot(components, get_logger())
     return bot

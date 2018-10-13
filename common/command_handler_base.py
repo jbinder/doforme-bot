@@ -16,7 +16,7 @@ class CommandHandlerBase(metaclass=abc.ABCMeta):
     def __init__(self, admin_id: int, texts: dict, telegram_service: TelegramService):
         self.telegram_service = telegram_service
         self.admin_id = admin_id
-        self.texts = {**texts, **common.texts.texts}
+        self.texts = {**common.texts.texts, **texts}
         self.callbacks = {}
 
     def register_observer(self, event_type: EventType, observer: callable):

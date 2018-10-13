@@ -1,7 +1,8 @@
 import argparse
 
-from bot import create_bot, get_logger
+from init import create_bot
 from common.texts import bot_name
+from common.utils.logging_tools import get_logger
 from common.utils.socket_app_lock import SocketAppLock
 
 

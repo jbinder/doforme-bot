@@ -1,3 +1,4 @@
+from logging import Logger
 from queue import Queue
 from threading import Thread
 
@@ -5,21 +6,13 @@ from telegram import Bot
 from telegram.ext import Updater, Dispatcher
 from telegram.ext.jobqueue import JobQueue
 
-from components.user.user_service import UserService
 
-
-class DoForMeBot:
-    bot_name: str
-    texts: dict
-    user_service: UserService
+class CommonBot:
+    logger: Logger
     components: dict
 
-    def __init__(self, bot_name, texts, components, admin_id, logger, user_service):
-        self.bot_name = bot_name
-        self.texts = texts
+    def __init__(self, components, logger):
         self.components = components
-        self.user_service = user_service
-        self.admin_id = admin_id
         self.logger = logger
 
     def run(self, token, webhook_url=None):

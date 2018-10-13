@@ -1,6 +1,6 @@
 import functools
 
-from common.db_tools import use_mysql
+from common.utils.db_tools import use_mysql
 from components.doforme.models import db
 
 

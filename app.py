@@ -2,7 +2,7 @@ import os
 from flask import Flask, request
 from telegram import Update
 
-from bot import create_bot
+from init import create_bot
 
 ip = os.environ['DFM_WEB_IP']
 port = int(os.environ['DFM_WEB_PORT'])
