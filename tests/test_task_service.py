@@ -107,7 +107,8 @@ class TestTaskService(unittest.TestCase):
     def _get_date(offset_days):
         return datetime.utcnow() + timedelta(days=offset_days)
 
-    def _create_task(self, db, title, chat_id, user1_id, user2_id, created, done):
+    @staticmethod
+    def _create_task(db, title, chat_id, user1_id, user2_id, created, done):
         db.Task(
             user_id=user1_id,
             chat_id=chat_id,

@@ -50,7 +50,7 @@ A Flask web app of the bot is available in app.py. It requires the following env
 
 ### Database
 
-To use a MySQL database instead the default SQLite (data/database.sqlite) database, set the following environment variables:
+To use a MySQL database instead the default SQLite (common/database.sqlite) database, set the following environment variables:
 * DFM_DB_HOST
 * DFM_DB_PORT
 * DFM_DB_USERNAME

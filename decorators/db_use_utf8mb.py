@@ -1,6 +1,7 @@
 import functools
 
-from data import db
+from common.db_tools import use_mysql
+from data.db import db
 
 
 def db_use_utf8mb(f):
@@ -8,8 +9,8 @@ def db_use_utf8mb(f):
 
     @functools.wraps(f)
     def decorator(*args, **kw):
-        if db.db.provider_name == "mysql":
-            db.db.execute("SET NAMES utf8mb4;")
+        if use_mysql():
+            db.execute("SET NAMES utf8mb4;")
         return f(*args, **kw)
 
     return decorator

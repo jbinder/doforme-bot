@@ -1,8 +1,8 @@
 import argparse
 import logging
 
+from components.feedback.feedback_component import FeedbackComponent
 from do_for_me_bot import DoForMeBot
-from services.feedback_service import FeedbackService
 from services.task_service import TaskService
 from services.telegram_service import TelegramService
 from services.user_service import UserService
@@ -23,8 +23,8 @@ def main():
     user_service = UserService()
     task_service = TaskService()
     telegram_service = TelegramService(user_service)
-    feedback_service = FeedbackService()
-    bot = DoForMeBot(bot_name, texts, telegram_service, task_service, user_service, feedback_service,
+    components = {'feedback': FeedbackComponent(args.admin_id)}
+    bot = DoForMeBot(bot_name, texts, telegram_service, task_service, user_service, components,
                      args.admin_id, logger)
     bot.run(args.token)
     if not __debug__:

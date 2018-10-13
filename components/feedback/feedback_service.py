@@ -2,7 +2,7 @@ from datetime import datetime
 
 from pony.orm import commit, db_session, select, ObjectNotFound
 
-from data.db import Feedback
+from components.feedback.models import Feedback
 from decorators.retry_on_error import retry_on_error
 from decorators.db_use_utf8mb import db_use_utf8mb
 

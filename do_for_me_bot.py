@@ -12,7 +12,6 @@ from telegram.ext.jobqueue import Days, JobQueue
 
 from decorators.show_typing import show_typing
 from libraries.telegramcalendar import telegramcalendar
-from services.feedback_service import FeedbackService
 from services.task_service import TaskService
 from services.telegram_service import TelegramService
 from services.user_service import UserService
@@ -24,17 +23,17 @@ class DoForMeBot:
     telegram_service: TelegramService
     task_service: TaskService
     user_service: UserService
-    feedback_service: FeedbackService
+    components: dict
     _date_format: str
 
-    def __init__(self, bot_name, texts, telegram_service, task_service, user_service, feedback_service,
+    def __init__(self, bot_name, texts, telegram_service, task_service, user_service, components,
                  admin_id, logger):
         self.bot_name = bot_name
         self.texts = texts
         self.telegram_service = telegram_service
         self.task_service = task_service
         self.user_service = user_service
-        self.feedback_service = feedback_service
+        self.components = components
         self.admin_id = admin_id
         self.logger = logger
         self._date_format = "%Y-%m-%d"
@@ -56,15 +55,14 @@ class DoForMeBot:
             ('do', self._do_select_chat, True),
             ('tasks', self._tasks_show, False),
             ('stats', self._stats_show, False),
-            ('feedback', self._feedback_add, False),
             ('admin-stats', self._admin_stats, False),
-            ('admin-feedback-show', self._admin_feedback_show, False),
-            ('admin-feedback-reply', self._admin_feedback_reply, False),
-            ('admin-feedback-close', self._admin_feedback_close, False),
             ('admin-announce', self._admin_announce, False),
         ]
         [dp.add_handler(CommandHandler(command, callback, pass_user_data=pass_user_data))
          for command, callback, pass_user_data in cmd_handlers]
+
+        for component in self.components.values():
+            component.init(dp)
 
         msg_handlers = [
             (Filters.status_update.new_chat_members, self._chat_member_add),
@@ -192,23 +190,12 @@ class DoForMeBot:
         update.message.reply_text(message)
 
     @show_typing
-    def _feedback_add(self, bot, update):
-        text = update.message.text[len("/feedback"):].strip()
-        if not text:
-            update.message.reply_text(self.texts['missing-text'](update.effective_user.first_name))
-            return
-        self.feedback_service.add(update.effective_user.id, text)
-        update.message.reply_text(self.texts['feedback-thanks'])
-        if self.admin_id:
-            bot.send_message(self.admin_id, self.texts['feedback-new'])
-
-    @show_typing
     def _admin_stats(self, bot, update):
         if not self._is_admin(update.effective_user.id):
             return
         task_stats = self.task_service.get_all_stats()
         user_stats = self.user_service.get_stats()
-        feedback_stats = self.feedback_service.get_stats()
+        feedback_stats = self.components['feedback'].get_stats()
         message = f"{self.texts['tasks']}:\n"
         message = message + self._get_stats_message(task_stats)
         message = message + f"\n\n{self.texts['users']}:\n" + "\n".join([f"{key}: {str(value)}" for
@@ -216,48 +203,6 @@ class DoForMeBot:
         message = message + f"\n\n{self.texts['feedback']}:\n" + "\n".join([f"{key}: {str(value)}"
                                                                             for key, value in feedback_stats.items()])
         update.message.reply_text(message)
-
-    @show_typing
-    def _admin_feedback_show(self, bot, update):
-        if not self._is_admin(update.effective_user.id):
-            return
-        message = "\n".join([f"{feedback.id} / {feedback.created.date()} / {feedback.text}"
-                             for feedback in self.feedback_service.get_all() if feedback.done is None])
-        if message:
-            update.message.reply_text(message)
-        else:
-            update.message.reply_text(self.texts['feedback-none'])
-
-    @show_typing
-    def _admin_feedback_reply(self, bot, update):
-        if not self._is_admin(update.effective_user.id):
-            return
-        text = update.message.text[len("/admin-feedback-reply"):].strip()
-        parts = text.split(" ")
-        if len(parts) < 2:
-            update.message.reply_text(self.texts['feedback-include-id'])
-            return
-        feedback_id = parts[0]
-        text = text[len(feedback_id):].strip()
-
-        feedback = self.feedback_service.get(int(feedback_id))
-        if not feedback:
-            update.message.reply_text(self.texts['feedback-not-found'])
-            return
-        bot.send_message(feedback.user_id, f"{self.texts['feedback-reply-prefix']}\n{text}\n\n"
-                                           f"{self.texts['feedback-reply-postfix']}")
-        update.message.reply_text(self.texts['feedback-reply-sent'])
-
-    @show_typing
-    def _admin_feedback_close(self, bot, update):
-        if not self._is_admin(update.effective_user.id):
-            return
-        feedback_id = update.message.text[len("/admin-feedback-close"):].strip()
-        if len(feedback_id) < 1:
-            update.message.reply_text(self.texts['feedback-include-id'])
-            return
-        self.feedback_service.set_resolved(int(feedback_id))
-        update.message.reply_text(self.texts['feedback-closed'])
 
     @show_typing
     def _admin_announce(self, bot, update):

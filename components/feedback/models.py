@@ -7,19 +7,11 @@ from common.db_tools import get_database, init_database
 db = get_database()
 
 
-class UserChat(db.Entity):
+class Feedback(db.Entity):
     user_id = Required(int)
-    chat_id = Required(int)
-
-
-class Task(db.Entity):
-    user_id = Required(int)
-    chat_id = Required(int)
-    owner_id = Required(int)
-    title = Required(str)
     created = Required(datetime)
+    text = Required(str)
     done = Optional(datetime)
-    due = Optional(datetime)
 
 
 init_database(db)
