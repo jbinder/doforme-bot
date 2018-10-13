@@ -1,6 +1,7 @@
 from telegram.ext import Dispatcher
 
 from common.component_base import ComponentBase
+from common.event_type import EventType
 from components.feedback.feedback_command_handler import FeedbackCommandHandler
 from components.feedback.feedback_service import FeedbackService
 from components.feedback.texts import texts
@@ -23,7 +24,10 @@ class FeedbackComponent(ComponentBase):
             ('admin-feedback-reply', self.command_handler.admin_feedback_reply, False),
             ('admin-feedback-close', self.command_handler.admin_feedback_close, False),
         ]
-        super()._register_commands(dp, cmd_handlers)
+        super()._register_command_handlers(dp, cmd_handlers)
 
     def get_stats(self):
         return self.feedback_service.get_stats()
+
+    def register_observer(self, event_type: EventType, observer: callable):
+        raise NotImplementedError()

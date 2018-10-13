@@ -10,9 +10,6 @@ texts = {'help': "Use\n"
                  f"WARNING: This bot is not fully grown up, it might forget data, be asleep, confuse data, etc.\n"
                  f"Please use the feedback command or find the doforme-bot on GitHub "
                  f"to report any issues, thanks a lot!",
-         'add-to-group': "Please add the bot to a group to get started!",
-         'welcome-bot': "Hi all! Please say hi to me so I am able to let others assign task to you!"
-                        "Also, please make sure to add me as contact to allow me to interact with you and vice versa.",
          'missing-title': lambda name: f"Please include a task title, {name}!",
          'missing-text': lambda name: f"Please include a text, {name}!",
          'select-chat': f"Which is the place of power?\nSelect below!",
@@ -76,8 +73,6 @@ texts = {'help': "Use\n"
          "The most busy bee" + ("s" if multiple else "") + " of this week " + ("are" if multiple else "is") +
          f" {user_names}!\nCongratulations!",
          'private-chat-required': f"Please switch to the private chat with @{bot_name} and write your commands there!",
-         'user-welcome': lambda chat_title, name: f"Welcome in the {chat_title}'s realm of productivity, {name}!",
-         'user-goodbye': lambda name: f"Farewell, my dear little exhausted busy bee {name}!",
          'task-done': lambda title: f"I released you from the task {title}.",
          'task-done-to-group': lambda owner_name, user_name, title: f"{owner_name}: {user_name} completed {title}!",
          'no-tasks': "Nothing to do right now, enjoy!",

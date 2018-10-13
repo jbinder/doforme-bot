@@ -7,14 +7,15 @@ from threading import Thread
 
 import telegram
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove, Bot
-from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackQueryHandler, Filters, Dispatcher
+from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, Dispatcher
 from telegram.ext.jobqueue import Days, JobQueue
 
+from components.user.user_event_type import UserEventType
+from components.user.user_service import UserService
 from decorators.show_typing import show_typing
 from libraries.telegramcalendar import telegramcalendar
 from services.task_service import TaskService
 from services.telegram_service import TelegramService
-from services.user_service import UserService
 
 
 class DoForMeBot:
@@ -26,17 +27,19 @@ class DoForMeBot:
     components: dict
     _date_format: str
 
-    def __init__(self, bot_name, texts, telegram_service, task_service, user_service, components,
-                 admin_id, logger):
+    def __init__(self, bot_name, texts, telegram_service, task_service, components, admin_id, logger):
         self.bot_name = bot_name
         self.texts = texts
         self.telegram_service = telegram_service
         self.task_service = task_service
-        self.user_service = user_service
         self.components = components
+        self.user_service = components['user'].get_user_service()
         self.admin_id = admin_id
         self.logger = logger
         self._date_format = "%Y-%m-%d"
+        self.components['user'].register_observer(
+            UserEventType.USER_LEFT_CHAT,
+            lambda event: self.task_service.remove_tasks(event['user_id'], event['chat_id']))
 
     def run(self, token, webhook_url=None):
         if webhook_url:
@@ -63,13 +66,6 @@ class DoForMeBot:
 
         for component in self.components.values():
             component.init(dp)
-
-        msg_handlers = [
-            (Filters.status_update.new_chat_members, self._chat_member_add),
-            (Filters.status_update.left_chat_member, self._chat_member_remove),
-            (Filters.text, self._chat_member_add)
-        ]
-        [dp.add_handler(MessageHandler(filters, callback)) for (filters, callback) in msg_handlers]
 
         dp.add_handler(CallbackQueryHandler(self._inline_handler, pass_user_data=True))
 
@@ -218,30 +214,6 @@ class DoForMeBot:
             bot.send_message(user_id, message)
         update.message.reply_text(self.texts['announcement-sent'](len(users)))
 
-    def _chat_member_add(self, bot, update):
-        chat_id = update.message.chat.id
-        for member in update.message.new_chat_members:
-            if not member.is_bot:
-                self._register_user(chat_id, member, update)
-            if member.username == self.bot_name:
-                update.message.reply_text(self.texts['welcome-bot'])
-        if len(update.message.new_chat_members) < 1:
-            if update.effective_chat.type == "private":
-                if len(self.telegram_service.get_chats(bot, update.effective_user.id)) < 1:
-                    update.message.reply_text(self.texts['add-to-group'])
-                else:
-                    update.message.reply_text(self.texts['help'])
-            else:
-                self._register_user(chat_id, update.effective_user, update)
-
-    def _chat_member_remove(self, bot, update):
-        chat_id = update.message.chat_id
-        user_id = update.message.left_chat_member.id
-        if self.user_service.remove_user_chat_if_exists(user_id, chat_id):
-            # TODO: show deleted tasks?
-            self.task_service.remove_tasks(user_id, chat_id)
-            update.message.reply_text(self.texts['user-goodbye'](update.message.left_chat_member.first_name))
-
     def _inline_handler(self, bot, update, user_data):
         data = re.split("[:,\n]", update.callback_query.data)
         if data[0] == "complete":
@@ -338,11 +310,6 @@ class DoForMeBot:
     def _error_handler(self, bot, update, error):
         """Log Errors caused by Updates."""
         self.logger.warning('Update "%s" caused error "%s"', update, error)
-
-    def _register_user(self, chat_id, member, update):
-        if self.user_service.add_user_chat_if_not_exists(member.id, chat_id):
-            update.message.reply_text(self.texts['user-welcome'](update.message.chat.title, member.first_name) +
-                                      "\n\n" + self.texts['help'])
 
     def _assure_private_chat(self, update):
         if not self.telegram_service.is_private_chat(update):
