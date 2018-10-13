@@ -1,7 +1,7 @@
 import functools
 
 from common.db_tools import use_mysql
-from data.db import db
+from components.doforme.models import db
 
 
 def db_use_utf8mb(f):

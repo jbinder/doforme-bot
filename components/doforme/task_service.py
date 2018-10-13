@@ -2,9 +2,9 @@ from datetime import datetime, timedelta
 
 from pony.orm import db_session, commit, select
 
-from data.db import Task
-from decorators.db_use_utf8mb import db_use_utf8mb
-from decorators.retry_on_error import retry_on_error
+from components.doforme.models import Task
+from common.decorators.db_use_utf8mb import db_use_utf8mb
+from common.decorators.retry_on_error import retry_on_error
 
 
 class TaskService:

@@ -8,8 +8,8 @@ class UserCommandHandler(CommandHandlerBase):
     bot_name: str
     user_service: UserService
 
-    def __init__(self, admin_id, texts, bot_name, user_service):
-        super().__init__(admin_id, texts)
+    def __init__(self, admin_id, texts, telegram_service, bot_name, user_service):
+        super().__init__(admin_id, texts, telegram_service)
         self.bot_name = bot_name
         self.user_service = user_service
 

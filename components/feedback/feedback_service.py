@@ -3,8 +3,8 @@ from datetime import datetime
 from pony.orm import commit, db_session, select, ObjectNotFound
 
 from components.feedback.models import Feedback
-from decorators.retry_on_error import retry_on_error
-from decorators.db_use_utf8mb import db_use_utf8mb
+from common.decorators.retry_on_error import retry_on_error
+from common.decorators.db_use_utf8mb import db_use_utf8mb
 
 
 class FeedbackService:

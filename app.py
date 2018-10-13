@@ -1,22 +1,8 @@
-import logging
 import os
 from flask import Flask, request
 from telegram import Update
 
-from components.feedback.feedback_component import FeedbackComponent
-from components.user.user_component import UserComponent
-from do_for_me_bot import DoForMeBot
-from services.task_service import TaskService
-from services.telegram_service import TelegramService
-from components.user.user_service import UserService
-from texts import texts, bot_name
-
-
-def get_logger():
-    logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                        level=logging.INFO)
-    return logging.getLogger(__name__)
-
+from bot import create_bot
 
 ip = os.environ['DFM_WEB_IP']
 port = int(os.environ['DFM_WEB_PORT'])
@@ -41,14 +27,6 @@ def webhook():
 
 
 if __name__ == '__main__':
-    logger = get_logger()
-    user_service = UserService()
-    task_service = TaskService()  # TODO: get from component
-    telegram_service = TelegramService(user_service)
-    components = {
-        'feedback': FeedbackComponent(admin_id),
-        'user': UserComponent(admin_id, bot_name)
-    }
-    bot = DoForMeBot(bot_name, texts, telegram_service, task_service, components, admin_id, logger)
+    bot = create_bot(admin_id)
     update_queue, bot_instance = bot.run(token, 'https://{}/{}'.format(dns, secret))
     application.run(host=ip, port=port)

@@ -14,8 +14,8 @@ class TestTaskService(unittest.TestCase):
 
     @mock.patch.dict(os.environ, {'DFM_ENV': 'Test'})
     def setUp(self):
-        from data.db import db
-        from services.task_service import TaskService
+        from components.doforme.models import db
+        from components.doforme.task_service import TaskService
         self.chat_id = 1
         self.user1_id = 1
         self.user2_id = 2

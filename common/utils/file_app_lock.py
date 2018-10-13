@@ -3,7 +3,7 @@ import signal
 from logging import Logger
 from pathlib import Path
 
-from utils.app_lock import AppLock
+from common.utils.app_lock import AppLock
 
 
 class FileAppLock(AppLock):

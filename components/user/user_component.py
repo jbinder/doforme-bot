@@ -2,20 +2,16 @@ from telegram.ext import Dispatcher, Filters
 
 from common.component_base import ComponentBase
 from common.event_type import EventType
-from components.user import texts
 from components.user.user_command_handler import UserCommandHandler
-from components.user.user_service import UserService
 
 
 class UserComponent(ComponentBase):
 
     command_handler: UserCommandHandler
-    user_service: UserService
 
-    def __init__(self, admin_id: int, bot_name: str):
+    def __init__(self, command_handler: UserCommandHandler):
         super().__init__()
-        self.user_service = UserService()
-        self.command_handler = UserCommandHandler(admin_id, texts, bot_name, self.user_service)
+        self.command_handler = command_handler
 
     def init(self, dp: Dispatcher):
         msg_handlers = [
@@ -25,11 +21,5 @@ class UserComponent(ComponentBase):
         ]
         super()._register_message_handlers(dp, msg_handlers)
 
-    def get_stats(self):
-        raise NotImplementedError()
-
     def register_observer(self, event_type: EventType, observer: callable):
         self.command_handler.register_observer(event_type, observer)
-
-    def get_user_service(self):
-        return self.user_service

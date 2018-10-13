@@ -1,8 +1,8 @@
 from pony.orm import commit, db_session, select
 
 from components.user.models import UserChat
-from decorators.db_use_utf8mb import db_use_utf8mb
-from decorators.retry_on_error import retry_on_error
+from common.decorators.db_use_utf8mb import db_use_utf8mb
+from common.decorators.retry_on_error import retry_on_error
 
 
 class UserService:

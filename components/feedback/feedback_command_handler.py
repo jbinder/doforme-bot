@@ -1,14 +1,14 @@
 from common.command_handler_base import CommandHandlerBase
 from components.feedback.feedback_service import FeedbackService
-from decorators.show_typing import show_typing
+from common.decorators.show_typing import show_typing
 
 
 class FeedbackCommandHandler(CommandHandlerBase):
 
     feedback_service: FeedbackService
 
-    def __init__(self, admin_id, texts, feedback_service):
-        super().__init__(admin_id, texts)
+    def __init__(self, admin_id, texts, telegram_service, feedback_service):
+        super().__init__(admin_id, texts, telegram_service)
         self.feedback_service = feedback_service
 
     @show_typing

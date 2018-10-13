@@ -2,7 +2,7 @@ import os
 import socket
 from logging import Logger
 
-from utils.app_lock import AppLock
+from common.utils.app_lock import AppLock
 
 
 class SocketAppLock(AppLock):

@@ -13,10 +13,6 @@ class ComponentBase(metaclass=abc.ABCMeta):
         """ Handle initialization here, like registering commands. """
 
     @abc.abstractmethod
-    def get_stats(self):
-        """ Return a dictionary of component specific statistics. """
-
-    @abc.abstractmethod
     def register_observer(self, event_type: EventType, observer: callable):
         """ Register for observing component events. """
 
