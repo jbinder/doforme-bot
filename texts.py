@@ -9,9 +9,4 @@ texts = {'help': "Use\n"
                  f"WARNING: This bot is not fully grown up, it might forget data, be asleep, confuse data, etc.\n"
                  f"Please use the feedback command or find the doforme-bot on GitHub "
                  f"to report any issues, thanks a lot!",
-         'missing-text': lambda name: f"Please include a text, {name}!",
-         'admin': "Admin",
-         'feedback-reply-postfix': "If you want to reply to this message, please use the /feedback command!",
-         'announcement-prefix': "Hi, there is an announcement from the doforme-team:",
-         'announcement-sent': lambda num_users: f"Your announcement has been sent to {num_users} users!",
          }
