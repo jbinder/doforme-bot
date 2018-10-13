@@ -2,11 +2,10 @@ from queue import Queue
 from threading import Thread
 
 from telegram import Bot
-from telegram.ext import Updater, CommandHandler, Dispatcher
+from telegram.ext import Updater, Dispatcher
 from telegram.ext.jobqueue import JobQueue
 
 from components.user.user_service import UserService
-from common.decorators.show_typing import show_typing
 
 
 class DoForMeBot:
@@ -34,13 +33,6 @@ class DoForMeBot:
             bot = updater.bot
             dp = updater.dispatcher
 
-        cmd_handlers = [
-            ('start', self._help_show, False),
-            ('help', self._help_show, False),
-        ]
-        [dp.add_handler(CommandHandler(command, callback, pass_user_data=pass_user_data))
-         for command, callback, pass_user_data in cmd_handlers]
-
         for component in self.components.values():
             component.init(dp)
 
@@ -56,10 +48,6 @@ class DoForMeBot:
             bot.set_webhook()
             updater.start_polling()
             updater.idle()
-
-    @show_typing
-    def _help_show(self, bot, update):
-        update.message.reply_text(self.texts['help'])
 
     def _error_handler(self, bot, update, error):
         """Log Errors caused by Updates."""
