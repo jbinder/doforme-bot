@@ -1,5 +1,5 @@
-python-telegram-bot
-===================
+python-telegram-bot-base
+========================
 
 A seed for Python Telegram bots.
 
@@ -55,11 +55,11 @@ Setup
 Usage
 -----
 
-* Copy [init.example.py](init.example.py) to [init.py](init.py), [texts.example.py](texts.example.py) to [texts.py](texts.py), and [requirements.example.txt](requirements.example.txt) to [requirements.txt](requirements.txt).
-* Set the bot name in [init.py](init.py).
-* Customize texts of existing components by copying the entries to the [texts.py](texts.py) file.
+* Copy [init.example.py](../init.example.py) to [init.py](../init.py), [texts.example.py](../texts.example.py) to [texts.py](../texts.py), and [requirements.example.txt](../requirements.example.txt) to [requirements.txt](../requirements.txt).
+* Set the bot name in [init.py](../init.py).
+* Customize texts of existing components by copying the entries to the [texts.py](../texts.py) file.
 * Develop your component(s).
-* Register the components that your bot should use in [init.py](init.py).
+* Register the components that your bot should use in [init.py](../init.py).
 
 ### Events
 
