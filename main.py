@@ -9,7 +9,7 @@ from common.utils.socket_app_lock import SocketAppLock
 def main():
     logger = get_logger()
     if not __debug__:
-        lock_name = "doforme.doforme-bot.main.lock"
+        lock_name = "python-telegram-bot.main.lock"
         app_lock = SocketAppLock(lock_name, logger)
         if not app_lock.lock():
             print(f"The bot already has been started or did not shutdown correctly. "

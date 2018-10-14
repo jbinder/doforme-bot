@@ -1,23 +1,28 @@
-DoForMe
-=======
+python-telegram-bot
+===================
 
-A Telegram bot for assigning tasks to other people.
-It helps you keeping track of your own tasks as well as tasks that you assigned others.
+A seed for Python Telegram bots.
 
-Try it out on [Telegram](https://telegram.me/doformebot) (Warning: things might break, use at your own risk!).
-Just add @doforme as contact, to a group, and follow the instructions.
 
-Features
---------
+Components
+----------
 
-* Create tasks including due date and assignee
-* Mark tasks as complete
-* Edit due date of tasks
-* Daily reminder of your open tasks
-* Weekly review
-* Privacy
-  * Task info is cleared as soon as it is not used anymore
-  * Leaving the group causes destruction of own data associated with that group
+### user
+
+Currently used to determine which users are members of chats where the bot has been added to.
+This is done by observing added users and senders of messages.
+
+### feedback
+
+Allows users to provide feedback, and the admin to view, respond, and close feedback.
+
+### announce
+
+Allows the admin to send messages to all users.
+
+### core
+
+For now used to send welcome and help messages.
 
 
 Install
@@ -78,9 +83,3 @@ Development
 Run the tests using:
 
     python -m unittest
-
-
-Libraries
----------
-
-* https://github.com/grcanosa/telegram-calendar-keyboard
