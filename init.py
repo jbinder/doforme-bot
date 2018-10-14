@@ -34,3 +34,7 @@ def create_bot(admin_id: int):
     }
     bot = CommonBot(components, get_logger())
     return bot
+
+
+def get_bot_name():
+    return "PythonTelegramBot"

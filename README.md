@@ -7,30 +7,62 @@ A seed for Python Telegram bots.
 Components
 ----------
 
+Components typically consist of:
+* Models: The Pony entities to persist data in a database
+* Texts: Constants and simple lambdas which are used to build responses.
+* CommandHandler: The component that handles the interaction with Telegram.
+* Component: This is where the Telegram handlers are registered (mandatory).
+* EventType: Contains all the events if the component provides such.
+
+The following components are available:
+
 ### user
 
 Currently used to determine which users are members of chats where the bot has been added to.
 This is done by observing added users and senders of messages.
+It provides the following events:
+* USER_LEFT_CHAT: Called when a user left a chat with the argument {'user_id': [user_id], 'chat_id': [chat_id]}.
 
 ### feedback
 
 Allows users to provide feedback, and the admin to view, respond, and close feedback.
+It provides the following commands:
+* feedback [text]: Provide feedback.
+* admin-feedback-show: Lists unresolved (not done) feedback entries.
+* admin-feedback-reply ([id] [text]): Sends [text] to the user that issued feedback [id].
+* admin-feedback-close ([id]): Marks feedback [id] as done.
 
 ### announce
 
-Allows the admin to send messages to all users.
+Allows the admin to send messages to all users. It provides the following commands:
+* admin-announce ([text]): Sends [text] to all users.
 
 ### core
 
-For now used to send welcome and help messages.
+For now used to send welcome and help messages. It provides the following commands:
+* start: Shows a help message.
+* help: Shows the help message.
 
 
-Install
--------
+Setup
+-----
 
 * Requires Python 3.6
 * Install dependencies: pip install -r requirements.txt
 * Register the bot with privacy status 'disabled'
+
+
+Usage
+-----
+
+* Develop your component(s).
+* TODO: Customize texts of existing components by copying the entries to the [texts.py](texts.py) file.
+* Register the components that your bot should use in [init.py](init.py).
+* Set the bot name in [init.py](init.py).
+
+### Events
+
+Use the register_observer(event_type: EventType, observer: Callable) of CommandHandlers to register for events.
 
 
 Run
@@ -64,17 +96,7 @@ To use a MySQL database instead the default SQLite (common/database.sqlite) data
 
 Note: The character set of the database needs to be set to utf8mb4!
 
-
-Usage
------
-
-The admin id is a Telegram user id and allows the specified user to perform following commands:
-
-* admin-stats: Shows basic stats of the data in the database.
-* admin-announce ([text]): Sends [text] to all users.
-* admin-feedback-show: Lists unresolved (not done) feedback entries.
-* admin-feedback-reply ([id] [text]): Sends [text] to the user that issued feedback [id].
-* admin-feedback-close ([id]): Marks feedback [id] as done.
+The admin id is the Telegram user id of the user that is allowed to execute admin commands (admin-...).
 
 
 Development
