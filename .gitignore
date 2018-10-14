@@ -109,3 +109,9 @@ venv.bak/
 *.bak
 *.sql
 
+# customized source
+init.py
+README.md
+texts.py
+requirements.txt
+
