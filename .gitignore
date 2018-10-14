@@ -111,7 +111,6 @@ venv.bak/
 
 # customized source
 init.py
-README.md
 texts.py
 requirements.txt
 
