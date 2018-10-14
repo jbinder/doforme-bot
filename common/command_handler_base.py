@@ -4,6 +4,7 @@ from typing import Dict
 import common
 from common.event_type import EventType
 from common.services.telegram_service import TelegramService
+from texts import texts as text_overrides
 
 
 class CommandHandlerBase(metaclass=abc.ABCMeta):
@@ -16,7 +17,7 @@ class CommandHandlerBase(metaclass=abc.ABCMeta):
     def __init__(self, admin_id: int, texts: dict, telegram_service: TelegramService):
         self.telegram_service = telegram_service
         self.admin_id = admin_id
-        self.texts = {**common.texts.texts, **texts}
+        self.texts = {**common.texts.texts, **texts, **text_overrides}
         self.callbacks = {}
 
     def register_observer(self, event_type: EventType, observer: callable):

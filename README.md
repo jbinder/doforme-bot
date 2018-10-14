@@ -40,7 +40,7 @@ Allows the admin to send messages to all users. It provides the following comman
 ### core
 
 For now used to send welcome and help messages. It provides the following commands:
-* start: Shows a help message.
+* start: Shows the help message.
 * help: Shows the help message.
 
 
@@ -55,10 +55,10 @@ Setup
 Usage
 -----
 
-* Develop your component(s).
-* TODO: Customize texts of existing components by copying the entries to the [texts.py](texts.py) file.
-* Register the components that your bot should use in [init.py](init.py).
 * Set the bot name in [init.py](init.py).
+* Customize texts of existing components by copying the entries to the [texts.py](texts.py) file.
+* Develop your component(s).
+* Register the components that your bot should use in [init.py](init.py).
 
 ### Events
 

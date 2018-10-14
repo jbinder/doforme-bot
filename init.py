@@ -1,5 +1,4 @@
 from common.utils.logging_tools import get_logger
-from common.texts import bot_name
 from components.announce.announce_command_handler import AnnounceCommandHandler
 from components.announce.announce_component import AnnounceComponent
 from components.core.core_command_handler import CoreCommandHandler
@@ -22,7 +21,7 @@ def create_bot(admin_id: int):
     user_service = UserService()
     telegram_service = TelegramService(user_service)
     core_command_handler = CoreCommandHandler(admin_id, core_texts, telegram_service)
-    user_command_handler = UserCommandHandler(admin_id, user_texts, telegram_service, bot_name, user_service)
+    user_command_handler = UserCommandHandler(admin_id, user_texts, telegram_service, get_bot_name(), user_service)
     feedback_service = FeedbackService()
     feedback_command_handler = FeedbackCommandHandler(admin_id, feedback_texts, telegram_service, feedback_service)
     announce_command_handler = AnnounceCommandHandler(admin_id, announce_texts, telegram_service, user_service)
