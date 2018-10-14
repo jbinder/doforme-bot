@@ -11,6 +11,7 @@ Components typically consist of:
 * Models: The Pony entities to persist data in a database
 * Texts: Constants and simple lambdas which are used to build responses.
 * CommandHandler: The component that handles the interaction with Telegram.
+* Service: Service(s), e.g. for handling data persistence.
 * Component: This is where the Telegram handlers are registered (mandatory).
 * EventType: Contains all the events if the component provides such.
 
@@ -56,7 +57,7 @@ Usage
 -----
 
 * Copy [init.example.py](../init.example.py) to [init.py](../init.py), [texts.example.py](../texts.example.py) to [texts.py](../texts.py), and [requirements.example.txt](../requirements.example.txt) to [requirements.txt](../requirements.txt).
-* Set the bot name in [init.py](../init.py).
+* Set the bot name in [texts.py](../texts.py).
 * Customize texts of existing components by copying the entries to the [texts.py](../texts.py) file.
 * Develop your component(s).
 * Register the components that your bot should use in [init.py](../init.py).
@@ -90,7 +91,7 @@ A Flask web app of the bot is available in app.py. It requires the following env
 
 ### Database
 
-To use a MySQL database instead the default SQLite (common/database.sqlite) database, set the following environment variables:
+To use a MySQL database instead the default SQLite (common/utils/database.sqlite) database, set the following environment variables:
 * DFM_DB_HOST
 * DFM_DB_PORT
 * DFM_DB_USERNAME

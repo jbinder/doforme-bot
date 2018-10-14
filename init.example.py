@@ -15,13 +15,14 @@ from components.user.user_component import UserComponent
 from common.common_bot import CommonBot
 from common.services.telegram_service import TelegramService
 from components.user.user_service import UserService
+from texts import bot_name
 
 
 def create_bot(admin_id: int):
     user_service = UserService()
     telegram_service = TelegramService(user_service)
     core_command_handler = CoreCommandHandler(admin_id, core_texts, telegram_service)
-    user_command_handler = UserCommandHandler(admin_id, user_texts, telegram_service, get_bot_name(), user_service)
+    user_command_handler = UserCommandHandler(admin_id, user_texts, telegram_service, bot_name, user_service)
     feedback_service = FeedbackService()
     feedback_command_handler = FeedbackCommandHandler(admin_id, feedback_texts, telegram_service, feedback_service)
     announce_command_handler = AnnounceCommandHandler(admin_id, announce_texts, telegram_service, user_service)
@@ -33,7 +34,3 @@ def create_bot(admin_id: int):
     }
     bot = CommonBot(components, get_logger())
     return bot
-
-
-def get_bot_name():
-    return "PythonTelegramBot"
