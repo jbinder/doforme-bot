@@ -1,6 +1,8 @@
 python-telegram-bot-base
 ========================
 
+[![Build Status](https://travis-ci.org/jbinder/python-telegram-bot-base.svg?branch=master)](https://travis-ci.org/jbinder/python-telegram-bot-base)
+
 A seed for Python Telegram bots.
 
 
