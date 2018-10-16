@@ -3,3 +3,7 @@ python-telegram-bot
 pony
 Flask
 PyMySQL
+
+# testing
+nose
+codecov

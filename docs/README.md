@@ -108,6 +108,10 @@ The admin id is the Telegram user id of the user that is allowed to execute admi
 Development
 -----------
 
-Run the tests using:
+Tests can be run using [nose](https://nose.readthedocs.io):
 
-    python -m unittest
+    nosetests 
+
+or using
+
+    scripts/test.sh
