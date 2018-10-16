@@ -1,7 +1,7 @@
 python-telegram-bot-base
 ========================
 
-[![Build Status](https://travis-ci.org/jbinder/python-telegram-bot-base.svg?branch=master)](https://travis-ci.org/jbinder/python-telegram-bot-base)
+[![Build Status](https://travis-ci.org/jbinder/python-telegram-bot-base.svg?branch=master)](https://travis-ci.org/jbinder/python-telegram-bot-base) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/b18c8596c5684727af0c402dd1628760)](https://www.codacy.com/app/jbinder/python-telegram-bot-base?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=jbinder/python-telegram-bot-base&amp;utm_campaign=Badge_Grade)
 
 A seed for Python Telegram bots.
 
