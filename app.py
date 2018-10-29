@@ -1,7 +1,9 @@
 import os
 from flask import Flask, request
+from pony.orm import db_session
 from telegram import Update
 
+from common.utils.db_tools import init_database, get_database
 from init import create_bot
 
 ip = os.environ['DFM_WEB_IP']
@@ -16,7 +18,18 @@ application = Flask(__name__)
 
 @application.route('/')
 def home():
-    return 'Up.'
+    is_up = True
+    # noinspection PyBroadException
+    try:
+        db = get_database()
+        init_database(db)
+        with db_session:
+            if not db.get_connection():
+                is_up = False
+    except Exception:
+        is_up = False
+
+    return 'Up.' if is_up else 'Down.'
 
 
 @application.route('/' + secret, methods=['GET', 'POST'])
