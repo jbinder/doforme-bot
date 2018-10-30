@@ -23,30 +23,30 @@ Currently used to determine which users are members of chats where the bot has b
 This is done by observing added users and senders of messages.
 It provides the following events:
 
--   USER_LEFT_CHAT: Called when a user left a chat with the argument {'user_id': [user_id], 'chat_id': [chat_id]}.
+-   **USER_LEFT_CHAT**: Called when a user left a chat with the argument `{'user_id': <user_id>, 'chat_id': <chat_id>}`.
 
 ### feedback
 
 Allows users to provide feedback, and the admin to view, respond, and close feedback.
 It provides the following commands:
 
--   feedback [text]&#x3A; Provide feedback.
--   admin-feedback-show: Lists unresolved (not done) feedback entries.
--   admin-feedback-reply ([id][text]): Sends [text] to the user that issued feedback [id].
--   admin-feedback-close ([id]): Marks feedback [id] as done.
+-   **feedback** \<text>\: Provide feedback.
+-   **admin-feedback-show**: Lists unresolved (not done) feedback entries.
+-   **admin-feedback-reply** \<id\> \<text\>: Sends \<text\> to the user that issued feedback \<id\>.
+-   **admin-feedback-close** \<id\>: Marks feedback \<id\> as done.
 
 ### announce
 
 Allows the admin to send messages to all users. It provides the following commands:
 
--   admin-announce ([text]): Sends [text] to all users.
+-   **admin-announce** \<text\>: Sends \<text\> to all users.
 
 ### core
 
 For now used to send welcome and help messages. It provides the following commands:
 
--   start: Shows the help message.
--   help: Shows the help message.
+-   **start**: Shows the help message.
+-   **help**: Shows the help message.
 
 ## Setup
 
@@ -75,7 +75,9 @@ as well as web app (webhook, for deployment).
 
 ### Console
 
-Run python main.py -t [your telegram token] -a [admin id]
+Run using:
+
+    python main.py -t <your telegram token> -a <admin id>
 
 ### Web app
 
@@ -87,6 +89,8 @@ A Flask web app of the bot is available in app.py. It requires the following env
 -   DFM_BOT_TOKEN: the Telegram bot token
 -   DFM_REQUEST_SECRET: a secret to slightly protect requests to the web app
 -   DFM_ADMIN_ID: the Telegram user id of the admin
+
+The status can be checked by accessing DFM_WEB_DNS.
 
 ### Database
 
