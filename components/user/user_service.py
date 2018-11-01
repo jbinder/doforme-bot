@@ -1,13 +1,11 @@
 from pony.orm import commit, db_session, select
 
 from components.user.models import UserChat
-from common.decorators.db_use_utf8mb import db_use_utf8mb
 from common.decorators.retry_on_error import retry_on_error
 
 
 class UserService:
     @db_session
-    @db_use_utf8mb
     @retry_on_error
     def add_user_chat_if_not_exists(self, user_id, chat_id):
         """ :returns True if added, False if already exists """
@@ -18,7 +16,6 @@ class UserService:
         return False
 
     @db_session
-    @db_use_utf8mb
     @retry_on_error
     def remove_user_chat_if_exists(self, user_id, chat_id):
         """ :returns True if removed, False if not exists """
@@ -30,35 +27,30 @@ class UserService:
         return False
 
     @db_session
-    @db_use_utf8mb
     @retry_on_error
     def get_chat_users(self, chat_id):
         # noinspection PyTypeChecker
         return select(user_chat.user_id for user_chat in UserChat if user_chat.chat_id == chat_id)[:]
 
     @db_session
-    @db_use_utf8mb
     @retry_on_error
     def get_chats_of_user(self, user_id):
         # noinspection PyTypeChecker
         return select(user_chat.chat_id for user_chat in UserChat if user_chat.user_id == user_id)[:]
 
     @db_session
-    @db_use_utf8mb
     @retry_on_error
     def get_all_users(self):
         # noinspection PyTypeChecker
         return select(user_chat.user_id for user_chat in UserChat)[:]
 
     @db_session
-    @db_use_utf8mb
     @retry_on_error
     def get_all_chats(self):
         # noinspection PyTypeChecker
         return select(user_chat.chat_id for user_chat in UserChat)[:]
 
     @db_session
-    @db_use_utf8mb
     @retry_on_error
     def get_stats(self):
         # noinspection PyTypeChecker

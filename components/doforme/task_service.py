@@ -3,13 +3,11 @@ from datetime import datetime, timedelta
 from pony.orm import db_session, commit, select
 
 from components.doforme.models import Task
-from common.decorators.db_use_utf8mb import db_use_utf8mb
 from common.decorators.retry_on_error import retry_on_error
 
 
 class TaskService:
     @db_session
-    @db_use_utf8mb
     @retry_on_error
     def add_task(self, data):
         Task(
@@ -22,28 +20,24 @@ class TaskService:
         commit()
 
     @db_session
-    @db_use_utf8mb
     @retry_on_error
     def get_tasks(self, user_id):
         # noinspection PyTypeChecker
         return select(task for task in Task if task.user_id == user_id).order_by(lambda t: t.due)[:]
 
     @db_session
-    @db_use_utf8mb
     @retry_on_error
     def get_owning_tasks(self, owner_id):
         # noinspection PyTypeChecker
         return select(task for task in Task if task.owner_id == owner_id).order_by(lambda t: t.due)[:]
 
     @db_session
-    @db_use_utf8mb
     @retry_on_error
     def get_tasks_for_chat(self, chat_id):
         # noinspection PyTypeChecker
         return select(task for task in Task if task.chat_id == chat_id).order_by(lambda t: t.due)[:]
 
     @db_session
-    @db_use_utf8mb
     @retry_on_error
     def get_due_today(self, user_id):
         # noinspection PyTypeChecker
@@ -52,7 +46,6 @@ class TaskService:
                       (task.due.date() == datetime.today().date())).order_by(lambda t: t.due)[:]
 
     @db_session
-    @db_use_utf8mb
     @retry_on_error
     def get_due_this_week(self, user_id):
         # noinspection PyTypeChecker
@@ -63,7 +56,6 @@ class TaskService:
                       ).order_by(lambda t: t.due)[:]
 
     @db_session
-    @db_use_utf8mb
     @retry_on_error
     def get_due_later_than_this_week(self, user_id):
         # noinspection PyTypeChecker
@@ -73,7 +65,6 @@ class TaskService:
                       ).order_by(lambda t: t.due)[:]
 
     @db_session
-    @db_use_utf8mb
     @retry_on_error
     def get_due_past(self, user_id):
         # noinspection PyTypeChecker
@@ -83,7 +74,6 @@ class TaskService:
                       ).order_by(lambda t: t.due)[:]
 
     @db_session
-    @db_use_utf8mb
     @retry_on_error
     def get_due_undefined(self, user_id):
         # noinspection PyTypeChecker
@@ -92,7 +82,6 @@ class TaskService:
                       ).order_by(lambda t: t.due)[:]
 
     @db_session
-    @db_use_utf8mb
     @retry_on_error
     def complete_task(self, task_id):
         """ :returns True if completed, False if has been completed already """
@@ -103,13 +92,11 @@ class TaskService:
         return False
 
     @db_session
-    @db_use_utf8mb
     @retry_on_error
     def get_task(self, task_id):
         return Task[task_id]
 
     @db_session
-    @db_use_utf8mb
     @retry_on_error
     def remove_tasks(self, user_id, chat_id):
         # noinspection PyTypeChecker
@@ -120,7 +107,6 @@ class TaskService:
             commit()
 
     @db_session
-    @db_use_utf8mb
     @retry_on_error
     def clean_titles(self):
         # noinspection PyTypeChecker
@@ -130,7 +116,6 @@ class TaskService:
         commit()
 
     @db_session
-    @db_use_utf8mb
     @retry_on_error
     def get_user_stats(self, user_id):
         # noinspection PyTypeChecker
@@ -143,7 +128,6 @@ class TaskService:
          }
 
     @db_session
-    @db_use_utf8mb
     @retry_on_error
     def get_chat_stats(self, chat_id):
         # noinspection PyTypeChecker
@@ -151,7 +135,6 @@ class TaskService:
         return self._get_stats(tasks_query)
 
     @db_session
-    @db_use_utf8mb
     @retry_on_error
     def get_all_stats(self):
         # noinspection PyTypeChecker
@@ -159,7 +142,6 @@ class TaskService:
         return self._get_stats(tasks_query)
 
     @db_session
-    @db_use_utf8mb
     @retry_on_error
     def get_stats(self, chat_id, date_from=None, date_to=None, user_id=None):
         """ :returns Stats for both created and done tasks in the specified time range. """
@@ -184,7 +166,6 @@ class TaskService:
         return created_tasks, done_tasks
 
     @db_session
-    @db_use_utf8mb
     @retry_on_error
     def update_due_date(self, task_id, due):
         Task[task_id].due = due
