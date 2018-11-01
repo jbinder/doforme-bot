@@ -15,7 +15,6 @@ def init_database(db):
         password = os.environ['DFM_DB_PASSWORD']
         database = os.environ['DFM_DB_DATABASE']
         db.bind(provider='mysql', host=host, user=username, passwd=password, db=database, port=port)
-        db.execute("SET NAMES utf8mb4;")
     elif 'DFM_ENV' in os.environ and os.environ['DFM_ENV'] is 'Test':
         db.bind(provider='sqlite', filename=':memory:')
     else:
