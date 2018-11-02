@@ -2,13 +2,15 @@ import functools
 
 from telegram import Bot, Update, ChatAction
 
+from common.consts import consts
+
 
 def show_typing(f):
     @functools.wraps(f)
     def decorator(*args, **kw):
         bot = args[1]
         update = args[2]
-        if not isinstance(bot, Bot):
+        if not isinstance(bot, Bot) and consts['test']['mockBotClassName'] not in str(type(bot)):
             raise RuntimeError("Unable to attach decorator as the second argument is not a bot object!")
         if not isinstance(update, Update):
             raise RuntimeError("Unable to attach decorator as the third argument is not an update object!")

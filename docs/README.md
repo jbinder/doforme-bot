@@ -4,11 +4,22 @@
 
 A seed for Python Telegram bots.
 
+Features:
+
+-   Uses [Pony][] for data persistence
+-   Supports running the bot using webhook or polling method
+-   Component oriented
+-   Provides basic components, e.g. to
+    - manage users in groups
+    - collect feedback
+    - send announcements
+-   Allows detecting downtimes (webhook only)
+
 ## Components
 
 Components typically consist of:
 
--   Models: The Pony entities to persist data in a database
+-   Models: [Pony][] entities to persist data in a database.
 -   Texts: Constants and simple lambdas which are used to build responses.
 -   CommandHandler: The component that handles the interaction with Telegram.
 -   Service: Service(s), e.g. for handling data persistence.
@@ -108,10 +119,14 @@ The admin id is the Telegram user id of the user that is allowed to execute admi
 
 ## Development
 
-Tests can be run using [nose](https://nose.readthedocs.io):
+Tests can be run using [nose][]:
 
     nosetests 
 
 or using
 
     scripts/test.sh
+
+
+[pony]: https://ponyorm.com
+[nose]: https://nose.readthedocs.io
