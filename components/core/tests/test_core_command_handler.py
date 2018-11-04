@@ -1,24 +1,15 @@
-from __future__ import absolute_import
-
-import unittest
-
 from telegram.ext import CommandHandler
-from telegram.ext import Updater
-
-import ptbtest
 
 from common.services.telegram_service import TelegramService
+from common.test.PtbTestCase import PtbTestCase
 from components.core.core_command_handler import CoreCommandHandler
 from components.user.user_service import UserService
 
 
-class TestCoreCommandHandler(unittest.TestCase):
+class TestCoreCommandHandler(PtbTestCase):
+
     def setUp(self):
-        self.bot = ptbtest.Mockbot()
-        self.ug = ptbtest.UserGenerator()
-        self.cg = ptbtest.ChatGenerator()
-        self.mg = ptbtest.MessageGenerator(self.bot)
-        self.updater = Updater(bot=self.bot)
+        PtbTestCase.setUp(self)
         self.handler = CoreCommandHandler(0, {'help': 'test'}, TelegramService(UserService()))
 
     def test_help(self):
@@ -28,11 +19,11 @@ class TestCoreCommandHandler(unittest.TestCase):
 
         self.bot.insertUpdate(update)
 
-        self.assertEqual(len(self.bot.sent_messages), 2)
+        self.assertEqual(2, len(self.bot.sent_messages))
         sent = self.bot.sent_messages[0]
-        self.assertEqual(sent['method'], "sendChatAction")
-        self.assertEqual(sent['action'], "typing")
+        self.assertEqual("sendChatAction", sent['method'])
+        self.assertEqual("typing", sent['action'])
         sent = self.bot.sent_messages[1]
-        self.assertEqual(sent['method'], "sendMessage")
-        self.assertEqual(sent['text'], "test")
+        self.assertEqual("sendMessage", sent['method'])
+        self.assertEqual("test", sent['text'])
         self.updater.stop()

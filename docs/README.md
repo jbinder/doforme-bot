@@ -10,9 +10,11 @@ Features:
 -   Supports running the bot using webhook or polling method
 -   Component oriented
 -   Provides basic components, e.g. to
+
     -   manage users in groups
     -   collect feedback
     -   send announcements
+    
 -   Allows detecting downtimes (webhook only)
 
 ## Components
