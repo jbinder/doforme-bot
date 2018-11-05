@@ -7,6 +7,7 @@ A seed for Python Telegram bots.
 Features:
 
 -   Uses [Pony][] for data persistence
+-   Uses [ptbtest][] for testing
 -   Supports running the bot using webhook or polling method
 -   Component oriented
 -   Provides basic components, e.g. to
@@ -131,3 +132,4 @@ or using
 
 [pony]: https://ponyorm.com
 [nose]: https://nose.readthedocs.io
+[ptbtest]: https://github.com/Eldinnie/ptbtest
