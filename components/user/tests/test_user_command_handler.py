@@ -73,6 +73,7 @@ class TestUserCommandHandler(PtbTestCase):
         update = self.mg.get_message(text="hello!", chat=chat)
 
         self.bot.insertUpdate(update)
+        time.sleep(1)  # the message takes some time to be sent...
 
         self.assertEqual(1, len(self.bot.sent_messages))
         # welcome message
