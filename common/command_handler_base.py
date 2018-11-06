@@ -26,6 +26,8 @@ class CommandHandlerBase(metaclass=abc.ABCMeta):
         self.callbacks[event_type].append(observer)
 
     def notify_observers(self, event_type: EventType, args: dict):
+        if event_type not in self.callbacks:
+            return
         for observer in self.callbacks[event_type]:
             observer(args)
 
