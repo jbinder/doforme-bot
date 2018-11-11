@@ -110,7 +110,7 @@ venv.bak/
 *.sql
 
 # customized source
-init.py
-texts.py
-requirements.txt
+#init.py
+#texts.py
+#requirements.txt
 
