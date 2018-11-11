@@ -12,7 +12,7 @@ from components.feedback.feedback_service import FeedbackService
 from components.user.user_event_type import UserEventType
 from components.user.user_service import UserService
 from common.decorators.show_typing import show_typing
-from libraries.telegramcalendar import telegramcalendar
+from libraries.calendar import telegramcalendar
 
 
 class DoForMeCommandHandler(CommandHandlerBase):

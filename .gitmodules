@@ -1,3 +1,6 @@
 [submodule "ptbtest"]
 	path = ptbtest
 	url = https://github.com/Derik117/ptbtest.git
+[submodule "libraries/calendar"]
+	path = libraries/calendar
+	url = https://github.com/jbinder/calendar-telegram.git

@@ -79,8 +79,3 @@ Run the tests using:
 
     python -m unittest
 
-
-Libraries
----------
-
-* https://github.com/grcanosa/telegram-calendar-keyboard
