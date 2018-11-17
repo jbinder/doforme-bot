@@ -67,7 +67,8 @@ class DoForMeCommandHandler(CommandHandlerBase):
                            reply_markup=markup, quote=False)
 
     def _do_select_due(self, bot, message, user_data):
-        message.reply_text(self.texts['select-date'], reply_markup=telegramcalendar.create_calendar())
+        reply = telegramcalendar.create_calendar(indicate_today=True)
+        message.reply_text(self.texts['select-date'], reply_markup=reply)
 
     def _do_add_task(self, bot, message, user_data):
         user_id = user_data['user_id']
