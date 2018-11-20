@@ -1,3 +1,3 @@
 [submodule "ptbtest"]
-	path = ptbtest
+	path = libraries/ptbtest
 	url = https://github.com/Derik117/ptbtest.git
