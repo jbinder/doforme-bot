@@ -1,3 +1,5 @@
+import time
+
 from telegram.ext import CommandHandler
 
 from common.services.telegram_service import TelegramService
@@ -11,6 +13,9 @@ class TestAnnounceCommandHandler(PtbTestCase):
 
     def setUp(self):
         PtbTestCase.setUp(self)
+        from components.user.models import db
+        db.drop_all_tables(with_all_data=True)
+        db.create_tables()
         self.service = UserService()
         self.admin_id = 42
         self.handler = AnnounceCommandHandler(self.admin_id, texts, TelegramService(self.service), self.service)
@@ -41,6 +46,7 @@ class TestAnnounceCommandHandler(PtbTestCase):
         self.service.add_user_chat_if_not_exists(update.effective_user.id, update.effective_chat.id)
 
         self.bot.insertUpdate(update)
+        time.sleep(1)  # the message takes some time to be sent...
 
         self.assertEqual(3, len(self.bot.sent_messages))
         sent = self.bot.sent_messages[0]

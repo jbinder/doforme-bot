@@ -162,6 +162,7 @@ class TestUserCommandHandler(PtbTestCase):
         self.service.add_user_chat_if_not_exists(user.id, chat.id)
 
         self.bot.insertUpdate(update)
+        time.sleep(1)  # the message takes some time to be sent...
 
         self.assertEqual(1, len(self.bot.sent_messages))
         # goodbye message

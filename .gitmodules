@@ -1,4 +1,4 @@
-[submodule "ptbtest"]
+[submodule "libraries/ptbtest"]
 	path = libraries/ptbtest
 	url = https://github.com/Derik117/ptbtest.git
 [submodule "libraries/calendar"]
