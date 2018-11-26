@@ -324,7 +324,7 @@ class DoForMeCommandHandler(CommandHandlerBase):
                 on_time = user_stats[1]['done']['onTimePercent']
                 stats.append([user_name, done, on_time])
 
-            stats.sort(key=operator.itemgetter(1, 2))
+            stats.sort(key=operator.itemgetter(1, 2), reverse=True)
             for user_name, done, on_time in stats:
                 message = message + self.texts['task-review-user-stats'](user_name, done, on_time) + "\n"
 
