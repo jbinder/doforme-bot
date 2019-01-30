@@ -64,7 +64,8 @@ For now used to send welcome and help messages. It provides the following comman
 
 ## Setup
 
--   Requires Python 3.6
+-   Requires Python 3.6 (including pip, setuptools, cffi, dev, wheel)
+    - Debian: build-essential libssl-dev libffi-dev
 -   Install dependencies: pip install -r requirements.txt
 -   Register the bot with privacy status 'disabled'
 
