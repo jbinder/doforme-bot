@@ -1,5 +1,5 @@
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from telegram.ext import CommandHandler
 
@@ -60,4 +60,58 @@ class TestDoForMeCommandHandler(PtbTestCase):
                 self.fail("Invalid user sort order.")
             if f"user {user1_id}:" in line:
                 break
+        self.updater.stop()
+
+    def test_job_daily_tasks_show_all_should_only_show_own_tasks_due_within_next_week(self):
+        self.updater.dispatcher.add_handler(CommandHandler("dummy_cmd", self.handler.job_daily_tasks_show_all))
+        self.updater.start_polling()
+        update = self.mg.get_message(text=f"/dummy_cmd")
+        user1_id = update.effective_user.id
+        user2_id = update.effective_user.id + 1
+        chat_id = update.effective_chat.id
+        self.user_service.add_user_chat_if_not_exists(user2_id, chat_id)
+        self.user_service.add_user_chat_if_not_exists(user1_id, chat_id)
+        task1_today = {'user_id': user1_id, 'chat_id': chat_id, 'owner_id': user2_id,
+                       'title': 'task 1', 'due': datetime.utcnow()}
+        self.task_service.add_task(task1_today)
+        task2_this_week = {'user_id': user1_id, 'chat_id': chat_id, 'owner_id': user2_id,
+                           'title': 'task 2', 'due': datetime.utcnow() + timedelta(days=5)}
+        self.task_service.add_task(task2_this_week)
+        task3_this_month = {'user_id': user1_id, 'chat_id': chat_id, 'owner_id': user2_id,
+                            'title': 'task 3', 'due': datetime.utcnow() + timedelta(days=8)}
+        self.task_service.add_task(task3_this_month)
+        task4_this_week_other_user = {'user_id': user2_id, 'chat_id': chat_id, 'owner_id': user1_id,
+                                      'title': 'task 4', 'due': datetime.utcnow() + timedelta(days=2)}
+        self.task_service.add_task(task4_this_week_other_user)
+
+        self.bot.insertUpdate(update)
+        time.sleep(2)  # the message takes some time to be sent...
+
+        chat_name = f"title {update.effective_chat['id']}"
+        expected_user1 = f"Your open tasks:\n\nDue today:\n๏ {chat_name}: {task1_today['title']} from user {user2_id}" \
+            f"\n\nThis week:\n๏ {chat_name}: {task2_this_week['title']} from user {user2_id}\n\n"
+        expected_user2 = f"Your open tasks:\n\nThis week:\n๏ {chat_name}: {task4_this_week_other_user['title']}" \
+            f" from user {user1_id}\n\n"
+        self.assertEqual(2, len(self.bot.sent_messages))  # each user gets a summary
+        self.assertEquals(expected_user1, self.bot.sent_messages[1]['text'])
+        self.assertEquals(expected_user2, self.bot.sent_messages[0]['text'])
+        self.updater.stop()
+
+    def test_job_daily_tasks_show_all_should_not_send_message_if_no_open_tasks_within_this_week(self):
+        self.updater.dispatcher.add_handler(CommandHandler("dummy_cmd", self.handler.job_daily_tasks_show_all))
+        self.updater.start_polling()
+        update = self.mg.get_message(text=f"/dummy_cmd")
+        user1_id = update.effective_user.id
+        user2_id = update.effective_user.id + 1
+        chat_id = update.effective_chat.id
+        self.user_service.add_user_chat_if_not_exists(user2_id, chat_id)
+        self.user_service.add_user_chat_if_not_exists(user1_id, chat_id)
+        task3_this_month = {'user_id': user1_id, 'chat_id': chat_id, 'owner_id': user2_id,
+                            'title': 'task 3', 'due': datetime.utcnow() + timedelta(days=8)}
+        self.task_service.add_task(task3_this_month)
+
+        self.bot.insertUpdate(update)
+        time.sleep(2)  # the message takes some time to be sent...
+
+        self.assertEqual(0, len(self.bot.sent_messages))  # each user gets a summary
         self.updater.stop()

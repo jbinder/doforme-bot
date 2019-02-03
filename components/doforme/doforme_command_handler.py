@@ -268,16 +268,12 @@ class DoForMeCommandHandler(CommandHandlerBase):
         due_past = self.task_service.get_due_past(user_id)
         due_today = self.task_service.get_due_today(user_id)
         due_this_week = self.task_service.get_due_this_week(user_id)
-        due_later_than_this_week = self.task_service.get_due_later_than_this_week(user_id)
         due_undefined = self.task_service.get_due_undefined(user_id)
         summary = (f"{self.texts['summary-overdue']}:\n{self._to_task_list(bot, due_past)}\n\n" if due_past else "") + \
                   (f"{self.texts['summary-due-today']}:\n{self._to_task_list(bot, due_today)}\n\n" if due_today else "")
         if show_future_tasks:
             summary += (f"{self.texts['summary-due-this-week']}:\n" +
                         f"{self._to_task_list(bot, due_this_week)}\n\n" if due_this_week else "") + \
-                       (f"{self.texts['summary-due-later']}:\n"
-                        f"{self._to_task_list(bot, due_later_than_this_week)}\n\n"
-                        if due_later_than_this_week else "") + \
                        (f"{self.texts['summary-due-undefined']}:\n"
                         f"{self._to_task_list(bot, due_undefined)}\n\n" if due_undefined else "")
         if len(summary) > 0:
