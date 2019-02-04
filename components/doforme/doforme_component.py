@@ -29,8 +29,8 @@ class DoForMeComponent(ComponentBase):
 
         jobs = [
             (self.command_handler.job_daily_tasks_show_all, time(hour=5, minute=0)),
-            (self.command_handler.job_daily_tasks_show_daily, time(hour=11, minute=0)),
-            (self.command_handler.job_daily_tasks_show_daily, time(hour=17, minute=0)),
+            # (self.command_handler.job_daily_tasks_show_daily, time(hour=11, minute=0)),
+            # (self.command_handler.job_daily_tasks_show_daily, time(hour=17, minute=0)),
         ]
         [dp.job_queue.run_daily(callback, time=run_at) for (callback, run_at) in jobs]
 
