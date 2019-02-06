@@ -360,7 +360,8 @@ class DoForMeCommandHandler(CommandHandlerBase):
         return "\n".join([self.texts['task-line-review-incomplete']
                           (task.title,
                            bot.getChatMember(task.chat_id, task.user_id).user.name,
-                           bot.getChatMember(task.chat_id, task.owner_id).user.name)
+                           bot.getChatMember(task.chat_id, task.owner_id).user.name,
+                           (datetime.now() - task.due).days)
                           for task in tasks])
 
     def job_daily_tasks_show_all(self, bot, update):

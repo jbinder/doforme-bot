@@ -72,7 +72,7 @@ class TestDoForMeCommandHandler(PtbTestCase):
         self.user_service.add_user_chat_if_not_exists(user2_id, chat_id)
         self.user_service.add_user_chat_if_not_exists(user1_id, chat_id)
         task1 = {'user_id': user1_id, 'chat_id': chat_id, 'owner_id': user2_id,
-                 'title': 'task 1', 'due': datetime.utcnow()}
+                 'title': 'task 1', 'due': datetime.utcnow() - timedelta(days=2)}
         self.task_service.add_task(task1)
 
         self.bot.insertUpdate(update)
@@ -83,7 +83,7 @@ class TestDoForMeCommandHandler(PtbTestCase):
         self.assertEqual("sendMessage", sent['method'])
         text = sent['text']
         self.assertTrue(texts['task-review-incomplete-tasks'] in text)
-        self.assertTrue(texts['task-line-review-incomplete']('task 1', f"user {user1_id}", f"user {user2_id}") in text)
+        self.assertTrue(texts['task-line-review-incomplete']('task 1', f"user {user1_id}", f"user {user2_id}", 2) in text)
 
         self.updater.stop()
 
