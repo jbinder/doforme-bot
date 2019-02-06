@@ -62,6 +62,31 @@ class TestDoForMeCommandHandler(PtbTestCase):
                 break
         self.updater.stop()
 
+    def test_job_weekly_review_incomplete_tasks_exists_should_show_incomplete_tasks(self):
+        self.updater.dispatcher.add_handler(CommandHandler("dummy_cmd", self.handler.job_weekly_review))
+        self.updater.start_polling()
+        update = self.mg.get_message(text=f"/dummy_cmd")
+        user1_id = update.effective_user.id
+        user2_id = update.effective_user.id + 1
+        chat_id = update.effective_chat.id
+        self.user_service.add_user_chat_if_not_exists(user2_id, chat_id)
+        self.user_service.add_user_chat_if_not_exists(user1_id, chat_id)
+        task1 = {'user_id': user1_id, 'chat_id': chat_id, 'owner_id': user2_id,
+                 'title': 'task 1', 'due': datetime.utcnow()}
+        self.task_service.add_task(task1)
+
+        self.bot.insertUpdate(update)
+        time.sleep(2)  # the message takes some time to be sent...
+
+        self.assertEqual(1, len(self.bot.sent_messages))
+        sent = self.bot.sent_messages[0]
+        self.assertEqual("sendMessage", sent['method'])
+        text = sent['text']
+        self.assertTrue(texts['task-review-incomplete-tasks'] in text)
+        self.assertTrue(texts['task-line-review-incomplete']('task 1', f"user {user1_id}", f"user {user2_id}") in text)
+
+        self.updater.stop()
+
     def test_job_daily_tasks_show_all_should_only_show_own_tasks_due_within_next_week(self):
         self.updater.dispatcher.add_handler(CommandHandler("dummy_cmd", self.handler.job_daily_tasks_show_all))
         self.updater.start_polling()

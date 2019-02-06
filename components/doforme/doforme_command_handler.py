@@ -289,7 +289,8 @@ class DoForMeCommandHandler(CommandHandlerBase):
             week_before = last_week - timedelta(days=7)
             stats = self.task_service.get_stats(chat_id, last_week, now)
             previous_stats = self.task_service.get_stats(chat_id, week_before, last_week)
-            if stats[0]['count'] > 0 or stats[1]['count'] > 0:
+            has_activity = stats[0]['count'] > 0 or stats[1]['count'] > 0
+            if has_activity:
                 on_time = stats[1]['done']['onTimePercent']
                 created_change = stats[0]['count'] - previous_stats[0]['count']
                 done_change = stats[1]['count'] - previous_stats[1]['count']
@@ -298,6 +299,7 @@ class DoForMeCommandHandler(CommandHandlerBase):
                 message = message + \
                           f"{self.texts['task-review-summary'](stats[0]['count'], stats[1]['count'], on_time)} "  \
                           f"{self.texts['task-review-comparison'](created_change, done_change, on_time_change)}\n\n"
+
                 tasks = [task for task in self.task_service.get_tasks_for_chat(chat_id)
                          if task.done and task.done > last_week]
                 if len(tasks) > 0:
@@ -308,12 +310,21 @@ class DoForMeCommandHandler(CommandHandlerBase):
                     user_names = " and ".join(most_busy_users)
                     message = message + self.texts['task-review-done-tasks'] + "\n" + \
                               f"{self._to_review_task_list(bot, tasks)}\n\n" \
-                              f"{self.texts['task-review-most-busy'](user_names, len(most_busy_users) > 1)}"
-            else:
-                message = message + self.texts['nothing']
+                              f"{self.texts['task-review-most-busy'](user_names, len(most_busy_users) > 1)}\n\n"
+
+            open_tasks = [task for task in self.task_service.get_tasks_for_chat(chat_id)
+                          if (task.due.date() <= datetime.today().date())]
+            has_open_tasks = len(open_tasks) > 0
+            if has_open_tasks:
+                open_tasks.sort(key=lambda x: x.due)
+                message = message + self.texts['task-review-incomplete-tasks'] + "\n" + \
+                    f"{self._to_review_due_task_list(bot, open_tasks)}\n\n"
+
+            if not has_activity and not has_open_tasks:
+                message = message + self.texts['nothing'] + "\n\n"
 
             stats = []
-            message = message + f"\n\n{self.texts['ranking']}:\n"
+            message = message + f"{self.texts['ranking']}:\n"
             for (user_id, user_name) in self.telegram_service.get_chat_users(bot, chat_id):
                 user_stats = self.task_service.get_stats(chat_id, user_id=user_id)
                 done = user_stats[1]['done']['count']
@@ -344,6 +355,13 @@ class DoForMeCommandHandler(CommandHandlerBase):
                           " " + self.texts['task-line-review-in-time'](task.done.date() <= task.due.date()
                                                                        if task.due else True)
                           for task in tasks if task.done])
+
+    def _to_review_due_task_list(self, bot, tasks):
+        return "\n".join([self.texts['task-line-review-incomplete']
+                          (task.title,
+                           bot.getChatMember(task.chat_id, task.user_id).user.name,
+                           bot.getChatMember(task.chat_id, task.owner_id).user.name)
+                          for task in tasks])
 
     def job_daily_tasks_show_all(self, bot, update):
         self._show_task_overviews(bot, True)
