@@ -32,6 +32,7 @@ texts = {
     'summary-overdue': "Overdue!!!!",
     'summary-due-today': "Due today",
     'summary-due-this-week': "This week",
+    'summary-due-later': "Later",
     'summary-due-undefined': "Undefined",
     'task-line-summary': lambda task, chat_name, owner_name:
     (f"{task.due.date()} - " if task.due else "") + f"{chat_name} - {task.title} ({owner_name})",

@@ -32,7 +32,7 @@ def create_bot(admin_id: int):
     announce_command_handler = AnnounceCommandHandler(admin_id, announce_texts, telegram_service, user_service)
     task_service = TaskService()
     doforme_command_handler = DoForMeCommandHandler(
-        admin_id, doforme_texts, telegram_service, bot_name, task_service, user_service, feedback_service)
+        admin_id, doforme_texts, telegram_service, bot_name, task_service, user_service, feedback_service, 5)
     components = {
         'core': CoreComponent(core_command_handler),
         'feedback': FeedbackComponent(feedback_command_handler),

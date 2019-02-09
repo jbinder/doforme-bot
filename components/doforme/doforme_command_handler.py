@@ -1,7 +1,7 @@
 import operator
 import re
 from collections import Counter
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 import telegram
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove
@@ -16,19 +16,21 @@ from libraries.calendar import telegramcalendar
 
 
 class DoForMeCommandHandler(CommandHandlerBase):
-
     _date_format: str
     user_service: UserService
     feedback_service: FeedbackService
     bot_name: str
     task_service: TaskService
+    show_all_tasks_weekday: int
 
-    def __init__(self, admin_id, texts, telegram_service, bot_name, task_service, user_service, feedback_service):
+    def __init__(self, admin_id, texts, telegram_service, bot_name, task_service, user_service, feedback_service,
+                 show_all_tasks_weekday):
         super().__init__(admin_id, texts, telegram_service)
         self.feedback_service = feedback_service
         self.user_service = user_service
         self.bot_name = bot_name
         self.task_service = task_service
+        self.show_all_tasks_weekday = show_all_tasks_weekday
         self._date_format = "%Y-%m-%d"
         self.register_observer(
             UserEventType.USER_LEFT_CHAT,
@@ -238,8 +240,8 @@ class DoForMeCommandHandler(CommandHandlerBase):
             return self.texts['no-tasks']
 
         return f"{self.texts['task-overview-group'](bot.getChat(chat_id).title)}:\n" \
-               f"{self._to_group_task_list(bot, tasks)}\n\n" \
-               f"{self.texts['task-overview-private-chat']}"
+            f"{self._to_group_task_list(bot, tasks)}\n\n" \
+            f"{self.texts['task-overview-private-chat']}"
 
     def _get_assigned_task_markup(self, task):
         return InlineKeyboardMarkup(
@@ -258,24 +260,29 @@ class DoForMeCommandHandler(CommandHandlerBase):
                "\n" + self.texts['tasks-stats-open'](
             stats['open']['count'], stats['open']['onTime'], stats['open']['late'])
 
-    def _show_task_overviews(self, bot, show_future_tasks):
+    def _show_task_overviews(self, bot, show_near_future_tasks, show_far_future_tasks=False):
         for user_id in self.user_service.get_all_users():
-            tasks_summary = self._get_task_summary(bot, user_id, show_future_tasks)
+            tasks_summary = self._get_task_summary(bot, user_id, show_near_future_tasks, show_far_future_tasks)
             if len(tasks_summary) > 0:
                 bot.send_message(user_id, tasks_summary)
 
-    def _get_task_summary(self, bot, user_id, show_future_tasks):
+    def _get_task_summary(self, bot, user_id, show_near_future_tasks, show_far_future_tasks):
         due_past = self.task_service.get_due_past(user_id)
         due_today = self.task_service.get_due_today(user_id)
-        due_this_week = self.task_service.get_due_this_week(user_id)
-        due_undefined = self.task_service.get_due_undefined(user_id)
         summary = (f"{self.texts['summary-overdue']}:\n{self._to_task_list(bot, due_past)}\n\n" if due_past else "") + \
                   (f"{self.texts['summary-due-today']}:\n{self._to_task_list(bot, due_today)}\n\n" if due_today else "")
-        if show_future_tasks:
+        if show_near_future_tasks:
+            due_this_week = self.task_service.get_due_this_week(user_id)
             summary += (f"{self.texts['summary-due-this-week']}:\n" +
-                        f"{self._to_task_list(bot, due_this_week)}\n\n" if due_this_week else "") + \
-                       (f"{self.texts['summary-due-undefined']}:\n"
-                        f"{self._to_task_list(bot, due_undefined)}\n\n" if due_undefined else "")
+                        f"{self._to_task_list(bot, due_this_week)}\n\n" if due_this_week else "")
+        if show_far_future_tasks:
+            due_later_than_this_week = self.task_service.get_due_later_than_this_week(user_id)
+            summary += (f"{self.texts['summary-due-later']}:\n"
+                        f"{self._to_task_list(bot, due_later_than_this_week)}\n\n"
+                        if due_later_than_this_week else "")
+        due_undefined = self.task_service.get_due_undefined(user_id)
+        summary += (f"{self.texts['summary-due-undefined']}:\n"
+                    f"{self._to_task_list(bot, due_undefined)}\n\n" if due_undefined else "")
         if len(summary) > 0:
             summary = f"{self.texts['summary-headline']}:\n\n" + summary
         return summary
@@ -297,8 +304,8 @@ class DoForMeCommandHandler(CommandHandlerBase):
                 on_time_change = previous_stats[1]['done']['onTimePercent'] / on_time if on_time > 0 else \
                     previous_stats[1]['done']['onTimePercent']
                 message = message + \
-                          f"{self.texts['task-review-summary'](stats[0]['count'], stats[1]['count'], on_time)} "  \
-                          f"{self.texts['task-review-comparison'](created_change, done_change, on_time_change)}\n\n"
+                          f"{self.texts['task-review-summary'](stats[0]['count'], stats[1]['count'], on_time)} " \
+                              f"{self.texts['task-review-comparison'](created_change, done_change, on_time_change)}\n\n"
 
                 tasks = [task for task in self.task_service.get_tasks_for_chat(chat_id)
                          if task.done and task.done > last_week]
@@ -310,7 +317,7 @@ class DoForMeCommandHandler(CommandHandlerBase):
                     user_names = " and ".join(most_busy_users)
                     message = message + self.texts['task-review-done-tasks'] + "\n" + \
                               f"{self._to_review_task_list(bot, tasks)}\n\n" \
-                              f"{self.texts['task-review-most-busy'](user_names, len(most_busy_users) > 1)}\n\n"
+                                  f"{self.texts['task-review-most-busy'](user_names, len(most_busy_users) > 1)}\n\n"
 
             open_tasks = [task for task in self.task_service.get_tasks_for_chat(chat_id)
                           if (task.due.date() <= datetime.today().date())]
@@ -318,7 +325,7 @@ class DoForMeCommandHandler(CommandHandlerBase):
             if has_open_tasks:
                 open_tasks.sort(key=lambda x: x.due)
                 message = message + self.texts['task-review-incomplete-tasks'] + "\n" + \
-                    f"{self._to_review_due_task_list(bot, open_tasks)}\n\n"
+                          f"{self._to_review_due_task_list(bot, open_tasks)}\n\n"
 
             if not has_activity and not has_open_tasks:
                 message = message + self.texts['nothing'] + "\n\n"
@@ -365,7 +372,8 @@ class DoForMeCommandHandler(CommandHandlerBase):
                           for task in tasks])
 
     def job_daily_tasks_show_all(self, bot, update):
-        self._show_task_overviews(bot, True)
+        show_all = date.today().weekday() == self.show_all_tasks_weekday
+        self._show_task_overviews(bot, True, show_all)
 
     def job_daily_tasks_show_daily(self, bot, update):
         self._show_task_overviews(bot, False)
