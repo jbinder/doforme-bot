@@ -49,13 +49,13 @@ texts = {
     f"Overall {num_created} task" + ("s have" if num_created != 1 else " has") + " been created and "
                                                                                  f"{num_done} task" + (
         "s have" if num_done != 1 else " has") + " been completed" +
-    (f" ({in_time}% in time)." if num_done > 0 else "."),
+    (f" ({'{:.2f}'.format(in_time)}% in time)." if num_done > 0 else "."),
     'task-review-comparison': lambda num_created, num_done, in_time:
     f"Compared to the previous week this is " + ("an increase" if num_created >= 0 else "a decrease") +
     f" of created tasks by {abs(num_created)}, and " + ("an increase" if num_done >= 0 else "a decrease") +
     f" of completed tasks by {abs(num_done)}.",
     'task-review-user-stats': lambda user_name, num_done, on_time:
-    f"{user_name}: {num_done} done, {('{:.2f}'.format(on_time))}% on time",
+    f"{user_name}: {num_done} done, {'{:.2f}'.format(on_time)}% on time",
     'task-review-done-tasks': f"Tasks that have been completed:",
     'task-review-incomplete-tasks': f"Unfortunately the following tasks have not yet been completed :(",
     'task-review-motivation': f"All of you, keep up your great work!",
