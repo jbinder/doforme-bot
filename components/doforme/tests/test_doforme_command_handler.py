@@ -64,7 +64,7 @@ class TestDoForMeCommandHandler(PtbTestCase):
                 break
         self.updater.stop()
 
-    def test_job_weekly_review_incomplete_tasks_exists_should_show_incomplete_tasks(self):
+    def test_job_weekly_review_incomplete_tasks_exists_should_show_incomplete_tasks_but_not_done_tasks(self):
         self.updater.dispatcher.add_handler(CommandHandler("dummy_cmd", self.handler.job_weekly_review))
         self.updater.start_polling()
         update = self.mg.get_message(text=f"/dummy_cmd")
@@ -76,6 +76,11 @@ class TestDoForMeCommandHandler(PtbTestCase):
         task1 = {'user_id': user1_id, 'chat_id': chat_id, 'owner_id': user2_id,
                  'title': 'task 1', 'due': datetime.utcnow() - timedelta(days=2)}
         self.task_service.add_task(task1)
+        task2 = {'user_id': user1_id, 'chat_id': chat_id, 'owner_id': user2_id,
+                 'title': 'task 2', 'due': datetime.utcnow() - timedelta(days=1)}
+        self.task_service.add_task(task2)
+        task = self.task_service.get_tasks(user1_id)[1]
+        self.task_service.complete_task(task.id)
 
         self.bot.insertUpdate(update)
         time.sleep(2)  # the message takes some time to be sent...
@@ -86,6 +91,7 @@ class TestDoForMeCommandHandler(PtbTestCase):
         text = sent['text']
         self.assertTrue(texts['task-review-incomplete-tasks'] in text)
         self.assertTrue(texts['task-line-review-incomplete']('task 1', f"user {user1_id}", f"user {user2_id}", 2) in text)
+        self.assertTrue(texts['task-line-review-incomplete']('task 2', f"user {user1_id}", f"user {user2_id}", 1) not in text)
 
         self.updater.stop()
 
