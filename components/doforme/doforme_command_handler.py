@@ -52,7 +52,8 @@ class DoForMeCommandHandler(CommandHandlerBase):
             update.message.reply_text(self.texts['add-to-group'])
             return
 
-        user_data['title'] = text
+        # escape title to avoid issues when sending it as markdown in e.g. reply_text
+        user_data['title'] = DoForMeCommandHandler._escape_text(text)
         user_data['owner_id'] = update.effective_user.id
 
         markup = InlineKeyboardMarkup(
@@ -60,13 +61,22 @@ class DoForMeCommandHandler(CommandHandlerBase):
              for (chat_id, chat_name) in chats])
         update.message.reply_text(self.texts['select-chat'], reply_markup=markup, quote=False)
 
+    # see https://stackoverflow.com/questions/40626896/telegram-does-not-escape-some-markdown-characters/49924429
+    @staticmethod
+    def _escape_text(text):
+        return text\
+            .replace("_", "\\_")\
+            .replace("*", "\\*")\
+            .replace("[", "\\[")\
+            .replace("`", "\\`")
+
     def _do_select_user(self, bot, message, user_data):
         markup = InlineKeyboardMarkup(
             [[InlineKeyboardButton(text=user_name, callback_data=f"user_id:{user_id}")]
              for (user_id, user_name) in self.telegram_service.get_chat_users(bot, user_data['chat_id'])],
             one_time_keyboard=True)
         message.reply_text(self.texts['select-user'](user_data['title'], message.chat.first_name),
-                           reply_markup=markup, quote=False)
+                           reply_markup=markup, quote=False, parse_mode=telegram.ParseMode.MARKDOWN)
 
     def _do_select_due(self, bot, message, user_data):
         reply = telegramcalendar.create_calendar(indicate_today=True)
@@ -88,7 +98,8 @@ class DoForMeCommandHandler(CommandHandlerBase):
     @show_typing
     def tasks_show(self, bot, update):
         if not self.telegram_service.is_private_chat(update):
-            update.message.reply_text(self._get_chat_tasks(bot, update.effective_chat.id))
+            update.message.reply_text(self._get_chat_tasks(bot, update.effective_chat.id),
+                                      parse_mode=telegram.ParseMode.MARKDOWN)
             return
 
         user_id = update.effective_user.id
@@ -102,7 +113,7 @@ class DoForMeCommandHandler(CommandHandlerBase):
             task_summary = self.texts['task-line-summary'](task, bot.getChat(task.chat_id).title,
                                                            bot.getChatMember(task.chat_id, task.owner_id).user.name)
             markup = self._get_assigned_task_markup(task)
-            update.message.reply_text(task_summary, reply_markup=markup)
+            update.message.reply_text(task_summary, reply_markup=markup, parse_mode=telegram.ParseMode.MARKDOWN)
 
         tasks = [task for task in self.task_service.get_owning_tasks(user_id) if not task.done]
         update.message.reply_text(f"{self.texts['task-headline-owning']}:\n")
@@ -112,7 +123,7 @@ class DoForMeCommandHandler(CommandHandlerBase):
             task_summary = self.texts['task-line-summary'](task, bot.getChat(task.chat_id).title,
                                                            bot.getChatMember(task.chat_id, task.user_id).user.name)
             markup = self._get_owned_task_markup(task)
-            update.message.reply_text(task_summary, reply_markup=markup)
+            update.message.reply_text(task_summary, reply_markup=markup, parse_mode=telegram.ParseMode.MARKDOWN)
 
     @show_typing
     def stats_show(self, bot, update):
@@ -150,7 +161,8 @@ class DoForMeCommandHandler(CommandHandlerBase):
                 self.telegram_service.remove_inline_keybaord(bot, update.callback_query)
                 owner_name = self.telegram_service.get_mention(bot, task.chat_id, task.owner_id)
                 user_name = self.telegram_service.get_mention(bot, task.chat_id, task.user_id)
-                update.callback_query.message.reply_text(self.texts['task-done'](task.title), quote=False)
+                update.callback_query.message.reply_text(self.texts['task-done'](task.title), quote=False,
+                                                         parse_mode=telegram.ParseMode.MARKDOWN)
                 bot.send_message(
                     task.chat_id, self.texts['task-done-to-group'](owner_name, user_name, task.title),
                     parse_mode=telegram.ParseMode.MARKDOWN)
@@ -264,7 +276,7 @@ class DoForMeCommandHandler(CommandHandlerBase):
         for user_id in self.user_service.get_all_users():
             tasks_summary = self._get_task_summary(bot, user_id, show_near_future_tasks, show_far_future_tasks)
             if len(tasks_summary) > 0:
-                bot.send_message(user_id, tasks_summary)
+                bot.send_message(user_id, tasks_summary, parse_mode=telegram.ParseMode.MARKDOWN)
 
     def _get_task_summary(self, bot, user_id, show_near_future_tasks, show_far_future_tasks):
         due_past = self.task_service.get_due_past(user_id)
@@ -343,7 +355,7 @@ class DoForMeCommandHandler(CommandHandlerBase):
                 message = message + self.texts['task-review-user-stats'](user_name, done, on_time) + "\n"
 
             message = message + f"\n{self.texts['task-review-motivation']}"
-            bot.send_message(chat_id, message)
+            bot.send_message(chat_id, message, parse_mode=telegram.ParseMode.MARKDOWN)
 
     def _to_group_task_list(self, bot, tasks):
         return "\n".join([self.texts['task-line-group'](task, bot.getChatMember(task.chat_id, task.user_id).user.name,
