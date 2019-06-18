@@ -330,6 +330,8 @@ class DoForMeCommandHandler(CommandHandlerBase):
                     message = message + self.texts['task-review-done-tasks'] + "\n" + \
                               f"{self._to_review_task_list(bot, tasks)}\n\n" \
                                   f"{self.texts['task-review-most-busy'](user_names, len(most_busy_users) > 1)}\n\n"
+            else:
+                message = message + self.texts['nothing'] + "\n\n"
 
             open_tasks = [task for task in self.task_service.get_tasks_for_chat(chat_id)
                           if (task.done is None and task.due.date() <= datetime.today().date())]
