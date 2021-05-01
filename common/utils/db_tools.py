@@ -15,7 +15,7 @@ def init_database(db):
         password = os.environ['DFM_DB_PASSWORD']
         database = os.environ['DFM_DB_DATABASE']
         db.bind(provider='mysql', host=host, user=username, passwd=password, db=database, port=port)
-    elif 'DFM_ENV' in os.environ and os.environ['DFM_ENV'] is 'Test':
+    elif 'DFM_ENV' in os.environ and os.environ['DFM_ENV'] == 'Test':
         db.bind(provider='sqlite', filename=':memory:')
     else:
         # use sqlite as fallback
