@@ -27,10 +27,11 @@ def create_bot(admin_id: int):
     feedback_command_handler = FeedbackCommandHandler(admin_id, feedback_texts, telegram_service, feedback_service)
     announce_command_handler = AnnounceCommandHandler(admin_id, announce_texts, telegram_service, user_service)
     components = {
-        'core': CoreComponent(core_command_handler),
+        # put your custom components at the top to be able to overwrite commands
         'feedback': FeedbackComponent(feedback_command_handler),
         'user': UserComponent(user_command_handler),
         'announce': AnnounceComponent(announce_command_handler),
+        'core': CoreComponent(core_command_handler),
     }
     bot = CommonBot(components, get_logger())
     return bot
