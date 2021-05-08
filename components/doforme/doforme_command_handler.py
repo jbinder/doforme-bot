@@ -7,6 +7,7 @@ import telegram
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove
 
 from common.command_handler_base import CommandHandlerBase
+from components.core.job_log_service import JobLogService
 from components.doforme.task_service import TaskService
 from components.feedback.feedback_service import FeedbackService
 from components.user.user_event_type import UserEventType
@@ -22,15 +23,17 @@ class DoForMeCommandHandler(CommandHandlerBase):
     bot_name: str
     task_service: TaskService
     show_all_tasks_weekday: int
+    job_log_service: JobLogService
 
     def __init__(self, admin_id, texts, telegram_service, bot_name, task_service, user_service, feedback_service,
-                 show_all_tasks_weekday):
+                 show_all_tasks_weekday, job_log_service):
         super().__init__(admin_id, texts, telegram_service)
         self.feedback_service = feedback_service
         self.user_service = user_service
         self.bot_name = bot_name
         self.task_service = task_service
         self.show_all_tasks_weekday = show_all_tasks_weekday
+        self.job_log_service = job_log_service
         self._date_format = "%Y-%m-%d"
         self.register_observer(
             UserEventType.USER_LEFT_CHAT,
@@ -386,12 +389,24 @@ class DoForMeCommandHandler(CommandHandlerBase):
                           for task in tasks])
 
     def job_daily_tasks_show_all(self, bot, update):
+        job_name = 'daily_tasks_show_all'
+        if self.job_log_service.has_run_recently(job_name):
+            return
         show_all = date.today().weekday() == self.show_all_tasks_weekday
         self._show_task_overviews(bot, True, show_all)
+        self.job_log_service.update_job_log(job_name)
 
     def job_daily_tasks_show_daily(self, bot, update):
+        job_name = 'daily_tasks_show_daily'
+        if self.job_log_service.has_run_recently(job_name):
+            return
         self._show_task_overviews(bot, False)
+        self.job_log_service.update_job_log(job_name)
 
     def job_weekly_review(self, bot, update):
+        job_name = 'weekly_review'
+        if self.job_log_service.has_run_recently(job_name):
+            return
         self._show_weekly_review(bot)
         self.task_service.clean_titles()
+        self.job_log_service.update_job_log(job_name)

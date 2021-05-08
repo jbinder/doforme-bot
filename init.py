@@ -3,6 +3,7 @@ from components.announce.announce_command_handler import AnnounceCommandHandler
 from components.announce.announce_component import AnnounceComponent
 from components.core.core_command_handler import CoreCommandHandler
 from components.core.core_component import CoreComponent
+from components.core.job_log_service import JobLogService
 from components.core.texts import texts as core_texts
 from components.doforme.doforme_command_handler import DoForMeCommandHandler
 from components.doforme.doforme_component import DoForMeComponent
@@ -31,8 +32,10 @@ def create_bot(admin_id: int):
     feedback_command_handler = FeedbackCommandHandler(admin_id, feedback_texts, telegram_service, feedback_service)
     announce_command_handler = AnnounceCommandHandler(admin_id, announce_texts, telegram_service, user_service)
     task_service = TaskService()
+    job_log_service = JobLogService()
     doforme_command_handler = DoForMeCommandHandler(
-        admin_id, doforme_texts, telegram_service, bot_name, task_service, user_service, feedback_service, 5)
+        admin_id, doforme_texts, telegram_service, bot_name, task_service, user_service, feedback_service, 5,
+        job_log_service)
     components = {
         'core': CoreComponent(core_command_handler),
         'feedback': FeedbackComponent(feedback_command_handler),

@@ -6,6 +6,7 @@ from telegram.ext import CommandHandler
 from common.services.telegram_service import TelegramService
 from common.test.PtbTestCase import PtbTestCase
 from components.doforme.tests.DfmMockbot import DfmMockbot
+from components.doforme.tests.mock_job_log_service import MockJobLogService
 from components.doforme.texts import texts
 from components.doforme.doforme_command_handler import DoForMeCommandHandler
 from components.doforme.task_service import TaskService
@@ -24,10 +25,11 @@ class TestDoForMeCommandHandler(PtbTestCase):
         self.user_service = UserService()
         self.task_service = TaskService()
         self.admin_id = 42
+        self.job_log_service = MockJobLogService()
         show_far_future_tasks = 5 if date.today().weekday() != 5 else 6
         self.handler = DoForMeCommandHandler(self.admin_id, texts, TelegramService(self.user_service), "bot-name",
                                              self.task_service, self.user_service, FeedbackService(),
-                                             show_far_future_tasks)
+                                             show_far_future_tasks, self.job_log_service)
 
     def _init_bot(self):
         dfm_bot = DfmMockbot()
@@ -134,7 +136,7 @@ class TestDoForMeCommandHandler(PtbTestCase):
         show_far_future_tasks = date.today().weekday()
         self.handler = DoForMeCommandHandler(self.admin_id, texts, TelegramService(self.user_service), "bot-name",
                                              self.task_service, self.user_service, FeedbackService(),
-                                             show_far_future_tasks)
+                                             show_far_future_tasks, self.job_log_service)
         self.updater.dispatcher.add_handler(CommandHandler("dummy_cmd", self.handler.job_daily_tasks_show_all))
         self.updater.start_polling()
         update = self.mg.get_message(text=f"/dummy_cmd")
