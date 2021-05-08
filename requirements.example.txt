@@ -1,5 +1,5 @@
 telegram
-python-telegram-bot
+python-telegram-bot==11
 pony
 Flask
 PyMySQL
