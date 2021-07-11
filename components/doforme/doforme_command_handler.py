@@ -47,6 +47,7 @@ class DoForMeCommandHandler(CommandHandlerBase):
             return
 
         text = update.message.text[len("/do"):].strip()
+
         if text == f"@{self.bot_name}" or not text:
             update.message.reply_text(self.texts['missing-title'](update.effective_user.first_name))
             return
@@ -55,8 +56,14 @@ class DoForMeCommandHandler(CommandHandlerBase):
             update.message.reply_text(self.texts['add-to-group'])
             return
 
+        _line_title = text.split("\n")[0]
+        _line_description = "\n".join(text.split("\n")[1:])
+
+
+
         # escape title to avoid issues when sending it as markdown in e.g. reply_text
-        user_data['title'] = DoForMeCommandHandler._escape_text(text)
+        user_data['title'] = DoForMeCommandHandler._escape_text(_line_title)
+        user_data['description'] = DoForMeCommandHandler._escape_text(_line_description)
         user_data['owner_id'] = update.effective_user.id
 
         markup = InlineKeyboardMarkup(
@@ -172,6 +179,12 @@ class DoForMeCommandHandler(CommandHandlerBase):
         elif data[0] == "edit-date":
             user_data['task_id'] = data[1]
             self._do_select_due(bot, update.callback_query.message, user_data)
+        elif data[0] == "show-task":
+            task = self.task_service.get_task(data[1])
+            bot.send_message(
+                task.owner_id, task.description,
+                parse_mode=telegram.ParseMode.MARKDOWN)
+
         elif data[0] == "edit-due-deny":
             self._edit_due_deny(bot, data, update)
             self.telegram_service.remove_inline_keybaord(bot, update.callback_query)
@@ -261,7 +274,8 @@ class DoForMeCommandHandler(CommandHandlerBase):
     def _get_assigned_task_markup(self, task):
         return InlineKeyboardMarkup(
             [[InlineKeyboardButton(text=self.texts['btn-complete'], callback_data=f"complete:{task.id}"),
-              InlineKeyboardButton(text=self.texts['btn-edit-date'], callback_data=f"edit-date:{task.id}")]],
+              InlineKeyboardButton(text=self.texts['btn-edit-date'], callback_data=f"edit-date:{task.id}"),
+              InlineKeyboardButton(text=self.texts['btn-show-task'], callback_data=f"show-task:{task.id}")]],
             one_time_keyboard=True)
 
     def _get_owned_task_markup(self, task):
