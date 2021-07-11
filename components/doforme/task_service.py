@@ -18,7 +18,8 @@ class TaskService:
             owner_id=data['owner_id'],
             title=data['title'],
             created=datetime.utcnow(),
-            due=data['due'])
+            due=data['due'],
+            description=data['description'])
         commit()
 
     @db_session
