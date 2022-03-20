@@ -8,7 +8,7 @@ db = get_database()
 
 
 class Feedback(db.Entity):
-    user_id = Required(int)
+    user_id = Required(int, size=64)
     created = Required(datetime)
     text = Required(str)
     done = Optional(datetime)

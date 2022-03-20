@@ -6,8 +6,8 @@ db = get_database()
 
 
 class UserChat(db.Entity):
-    user_id = Required(int)
-    chat_id = Required(int)
+    user_id = Required(int, size=64)
+    chat_id = Required(int, size=64)
 
 
 init_database(db)
