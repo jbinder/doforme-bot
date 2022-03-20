@@ -26,6 +26,7 @@ texts = {
     'updated-task-requested': lambda user_name: f"I requested {user_name} to updated your task.",
     'btn-complete': "Complete",
     'btn-edit-date': "Edit date",
+    'btn-show-task': "Show task",
     'btn-accept': "Accept",
     'btn-deny': "Deny",
     'summary-headline': "Your open tasks",

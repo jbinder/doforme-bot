@@ -31,9 +31,11 @@ Usage
 
 ### User
 
-Each participating user needs to add the bot as contact. Furthermore the bot needs to be added to a group.
-For members in this group it is possible to assign tasks to other members if they have been detected by the bot.
-To get detected, all users need to write an informal message in the group after the bot has been added.
+* Each participating user needs to add the bot as contact.
+* The bot needs to be added to at least one group.
+* Each participating user needs to post a message in those groups once the bot has been added. This will allow the bot to register the groups and its users.
+
+For members in this group it than is possible to assign tasks to other members which have been registered by the bot as described above.
 
 Users can assign (/do \<task title\>), list (/tasks), show stats (/stats), etc. in the private chat with the bot.
 Open task reminders are also shown in the private chat.

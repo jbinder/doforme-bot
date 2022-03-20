@@ -15,6 +15,7 @@ class Task(db.Entity):
     created = Required(datetime)
     done = Optional(datetime)
     due = Optional(datetime)
+    description = Optional(str)
 
 
 init_database(db)
