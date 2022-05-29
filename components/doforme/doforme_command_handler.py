@@ -121,7 +121,7 @@ class DoForMeCommandHandler(CommandHandlerBase):
 
         for task in tasks:
             task_summary = self.texts['task-line-summary'](task, bot.getChat(task.chat_id).title,
-                                                           bot.getChatMember(task.chat_id, task.owner_id).user.name)
+                                                           self.telegram_service.get_user_name(bot, task.chat_id, task.owner_id))
             markup = self._get_assigned_task_markup(task)
             update.message.reply_text(task_summary, reply_markup=markup, parse_mode=telegram.ParseMode.MARKDOWN)
 
@@ -131,7 +131,7 @@ class DoForMeCommandHandler(CommandHandlerBase):
             update.message.reply_text(self.texts['no-tasks'])
         for task in tasks:
             task_summary = self.texts['task-line-summary'](task, bot.getChat(task.chat_id).title,
-                                                           bot.getChatMember(task.chat_id, task.user_id).user.name)
+                                                           self.telegram_service.get_user_name(bot, task.chat_id, task.user_id))
             markup = self._get_owned_task_markup(task)
             update.message.reply_text(task_summary, reply_markup=markup, parse_mode=telegram.ParseMode.MARKDOWN)
 
@@ -341,7 +341,7 @@ class DoForMeCommandHandler(CommandHandlerBase):
                 if len(tasks) > 0:
                     activity_counter = Counter([task.user_id for task in tasks])
                     most_busy = activity_counter.most_common(1)[0][1]
-                    most_busy_users = [bot.getChatMember(chat_id, user_id).user.name
+                    most_busy_users = [self.telegram_service.get_user_name(bot, chat_id, user_id)
                                        for (user_id, count) in activity_counter.items() if count == most_busy]
                     user_names = " and ".join(most_busy_users)
                     message = message + self.texts['task-review-done-tasks'] + "\n" + \
@@ -377,19 +377,19 @@ class DoForMeCommandHandler(CommandHandlerBase):
             bot.send_message(chat_id, message, parse_mode=telegram.ParseMode.MARKDOWN)
 
     def _to_group_task_list(self, bot, tasks):
-        return "\n".join([self.texts['task-line-group'](task, bot.getChatMember(task.chat_id, task.user_id).user.name,
-                                                        bot.getChatMember(task.chat_id, task.owner_id).user.name)
+        return "\n".join([self.texts['task-line-group'](task, self.telegram_service.get_user_name(bot, task.chat_id, task.user_id),
+                                                        self.telegram_service.get_user_name(bot, task.chat_id, task.owner_id))
                           for task in tasks])
 
     def _to_task_list(self, bot, due_tasks):
         return "\n".join([self.texts['task-line'](bot.getChat(task.chat_id).title, task.title,
-                                                  bot.getChatMember(task.chat_id, task.owner_id).user.name)
+                                                  self.telegram_service.get_user_name(bot, task.chat_id, task.owner_id))
                           for task in due_tasks])
 
     def _to_review_task_list(self, bot, tasks):
         return "\n".join([self.texts['task-line-review'](task.title,
-                                                         bot.getChatMember(task.chat_id, task.user_id).user.name,
-                                                         bot.getChatMember(task.chat_id, task.owner_id).user.name) +
+                                                         self.telegram_service.get_user_name(bot, task.chat_id, task.user_id),
+                                                         self.telegram_service.get_user_name(bot, task.chat_id, task.owner_id)) +
                           " " + self.texts['task-line-review-in-time'](task.done.date() <= task.due.date()
                                                                        if task.due else True)
                           for task in tasks if task.done])
@@ -397,8 +397,8 @@ class DoForMeCommandHandler(CommandHandlerBase):
     def _to_review_due_task_list(self, bot, tasks):
         return "\n".join([self.texts['task-line-review-incomplete']
                           (task.title,
-                           bot.getChatMember(task.chat_id, task.user_id).user.name,
-                           bot.getChatMember(task.chat_id, task.owner_id).user.name,
+                           self.telegram_service.get_user_name(bot, task.chat_id, task.user_id),
+                           self.telegram_service.get_user_name(bot, task.chat_id, task.owner_id),
                            (datetime.now() - task.due).days)
                           for task in tasks])
 
