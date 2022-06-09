@@ -4,6 +4,7 @@ from components.announce.announce_component import AnnounceComponent
 from components.core.core_command_handler import CoreCommandHandler
 from components.core.core_component import CoreComponent
 from components.core.texts import texts as core_texts
+from components.doforme.doforme_migration_handler import DoForMeMigrationHandler
 from components.user.texts import texts as user_texts
 from components.feedback.texts import texts as feedback_texts
 from components.announce.texts import texts as announce_texts
@@ -14,6 +15,7 @@ from components.user.user_command_handler import UserCommandHandler
 from components.user.user_component import UserComponent
 from common.common_bot import CommonBot
 from common.services.telegram_service import TelegramService
+from components.user.user_migration_handler import UserMigrationHandler
 from components.user.user_service import UserService
 from texts import bot_name
 
@@ -21,7 +23,7 @@ from texts import bot_name
 def create_bot(admin_id: int):
     logger = get_logger()
     user_service = UserService()
-    telegram_service = TelegramService(user_service, logger)
+    telegram_service = TelegramService(user_service, logger, [UserMigrationHandler(), DoForMeMigrationHandler()])
     core_command_handler = CoreCommandHandler(admin_id, core_texts, telegram_service)
     user_command_handler = UserCommandHandler(admin_id, user_texts, telegram_service, bot_name, user_service)
     feedback_service = FeedbackService()

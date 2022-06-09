@@ -1,8 +1,11 @@
 from logging import Logger
+from typing import List
 
 import telegram
+from telegram.error import ChatMigrated
 from telegram.utils.helpers import escape_markdown
 
+from common.migration_handler_base import MigrationHandlerBase
 from components.user.user_service import UserService
 
 
@@ -10,10 +13,12 @@ class TelegramService:
 
     logger: Logger
     user_service: UserService
+    migration_handlers: List[MigrationHandlerBase]
 
-    def __init__(self, user_service, logger):
+    def __init__(self, user_service, logger, migration_handlers: List[MigrationHandlerBase]):
         self.user_service = user_service
         self.logger = logger
+        self.migration_handlers = migration_handlers
 
     def get_chat_users(self, bot, chat_id):
         """ :returns a list of tuples containing id and name of users of the specified chat """
@@ -31,6 +36,14 @@ class TelegramService:
         user_name = 'unknown'
         try:
             user_name = bot.getChatMember(chat_id, user_id).user.name
+        except ChatMigrated as e:
+            self.logger.exception(f"Chat has been migrated to Supergroup (chat/user): {chat_id}/{user_id}.")
+            try:
+                # migrate to the supergroup
+                [handler.migrate_to_supergroup(chat_id, e.new_chat_id) for handler in self.migration_handlers]
+                user_name = bot.getChatMember(e.new_chat_id, user_id).user.name
+            except Exception:
+                self.logger.exception(f"Unable to get username (chat/user): {chat_id}/{user_id}.")
         except Exception:
             self.logger.exception(f"Unable to get username (chat/user): {chat_id}/{user_id}.")
         return user_name

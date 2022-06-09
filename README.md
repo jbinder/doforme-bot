@@ -44,7 +44,7 @@ The bot posts status updates and weekly review messages to the group.
 #### Supergroups
 
 Following [actions](https://t.me/tgbetachat/59941) automatically cause groups to be converted to supergroups.
-If that happens, it might be necessary to remove and add the bot again to those groups, and also to follow the setup (member detection) procedure as described above.
+If that happens, it is attempted to automatically migrate the data. Still, in some cases it might be necessary to remove and add the bot again to those groups, and also to follow the setup (member detection) procedure as described above.
 
 
 ### Admin
