@@ -1,5 +1,8 @@
 from logging import Logger
 
+import telegram
+from telegram.utils.helpers import escape_markdown
+
 from components.user.user_service import UserService
 
 
@@ -51,3 +54,21 @@ class TelegramService:
                               message_id=query.message.message_id,
                               reply_markup=None
                               )
+
+    @staticmethod
+    def send_message(bot, user_id, text, parse_mode: telegram.ParseMode=telegram.ParseMode.HTML,
+                     reply_markup=None, skip_escaping=False):
+        if parse_mode is telegram.ParseMode.MARKDOWN and not skip_escaping:
+            text = TelegramService.escape_text(text)
+        bot.send_message(user_id, text, parse_mode=parse_mode, reply_markup=reply_markup)
+
+    @staticmethod
+    def send_reply(message: telegram.message, text, reply_markup=None, quote=False,
+                   parse_mode: telegram.ParseMode=telegram.ParseMode.HTML, skip_escaping=False):
+        if parse_mode is telegram.ParseMode.MARKDOWN and not skip_escaping:
+            text = TelegramService.escape_text(text)
+        message.reply_text(text, reply_markup=reply_markup, quote=quote, parse_mode=parse_mode)
+
+    @staticmethod
+    def escape_text(text: str):
+        return escape_markdown(text)

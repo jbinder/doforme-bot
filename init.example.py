@@ -19,8 +19,9 @@ from texts import bot_name
 
 
 def create_bot(admin_id: int):
+    logger = get_logger()
     user_service = UserService()
-    telegram_service = TelegramService(user_service)
+    telegram_service = TelegramService(user_service, logger)
     core_command_handler = CoreCommandHandler(admin_id, core_texts, telegram_service)
     user_command_handler = UserCommandHandler(admin_id, user_texts, telegram_service, bot_name, user_service)
     feedback_service = FeedbackService()
@@ -33,5 +34,5 @@ def create_bot(admin_id: int):
         'announce': AnnounceComponent(announce_command_handler),
         'core': CoreComponent(core_command_handler),
     }
-    bot = CommonBot(components, get_logger())
+    bot = CommonBot(components, logger)
     return bot
