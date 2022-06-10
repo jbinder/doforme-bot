@@ -324,6 +324,7 @@ class DoForMeCommandHandler(CommandHandlerBase):
             now = datetime.now()
             last_week = now - timedelta(days=7)
             week_before = last_week - timedelta(days=7)
+            next_week = now + timedelta(days=7)
             stats = self.task_service.get_stats(chat_id, last_week, now)
             previous_stats = self.task_service.get_stats(chat_id, week_before, last_week)
             has_activity = stats[0]['count'] > 0 or stats[1]['count'] > 0
@@ -359,8 +360,19 @@ class DoForMeCommandHandler(CommandHandlerBase):
                 message = message + self.texts['task-review-incomplete-tasks'] + "\n" + \
                           f"{self._to_review_due_task_list(bot, open_tasks)}\n\n"
 
-            if not has_activity and not has_open_tasks:
+            if has_activity and not has_open_tasks:
                 message = message + self.texts['nothing'] + "\n\n"
+
+            upcoming_tasks = [task for task in self.task_service.get_tasks_for_chat(chat_id)
+                              if (task.done is None and datetime.today().date() <= task.due.date() <= next_week.date())]
+            has_upcoming_tasks = len(upcoming_tasks) > 0
+            if has_upcoming_tasks:
+                upcoming_tasks.sort(key=lambda x: x.due)
+                message = message + self.texts['task-review-upcoming-tasks'] + "\n" + \
+                          f"{self._to_review_upcoming_task_list(bot, upcoming_tasks)}\n\n"
+
+            if not has_activity and not has_open_tasks and not has_upcoming_tasks:
+                return
 
             stats = []
             message = message + f"{self.texts['ranking']}:\n"
@@ -401,6 +413,14 @@ class DoForMeCommandHandler(CommandHandlerBase):
                            self.telegram_service.get_user_name(bot, task.chat_id, task.user_id),
                            self.telegram_service.get_user_name(bot, task.chat_id, task.owner_id),
                            (datetime.now() - task.due).days)
+                          for task in tasks])
+
+    def _to_review_upcoming_task_list(self, bot, tasks):
+        return "\n".join([self.texts['task-line-review-upcoming']
+                          (task.title,
+                           self.telegram_service.get_user_name(bot, task.chat_id, task.user_id),
+                           self.telegram_service.get_user_name(bot, task.chat_id, task.owner_id),
+                           (task.due - datetime.now()).days)
                           for task in tasks])
 
     def job_daily_tasks_show_all(self, bot, update):

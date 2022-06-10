@@ -59,10 +59,12 @@ texts = {
     f"{user_name}: {num_done} done, {'{:.2f}'.format(on_time)}% on time",
     'task-review-done-tasks': f"Tasks that have been completed:",
     'task-review-incomplete-tasks': f"Unfortunately the following tasks have not yet been completed :(",
+    'task-review-upcoming-tasks': f"The following tasks are due this week:",
     'task-review-motivation': f"All of you, keep up your great work!",
     'task-line-review': lambda title, user_name, owner_name: f"๏ {user_name} completed {title} from {owner_name}",
     'task-line-review-in-time': lambda in_time: f"in time!" if in_time else "a little late.",
     'task-line-review-incomplete': lambda title, user_name, owner_name, num_days: f"๏ {user_name} left {title} from {owner_name} open for already {num_days} day{'s' if num_days != 1 else ''}",
+    'task-line-review-upcoming': lambda title, user_name, owner_name, num_days: f"๏ {user_name} has {num_days} day{'s' if num_days != 1 else ''} to complete {title} from {owner_name}",
     'task-review-most-busy': lambda user_names, multiple:
     "The most busy bee" + ("s" if multiple else "") + " of this week " + ("are" if multiple else "is") +
     f" {user_names}!\nCongratulations!",
