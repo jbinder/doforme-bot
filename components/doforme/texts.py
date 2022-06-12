@@ -84,4 +84,7 @@ texts = {
     'nothing': "Nothing.",
     'ranking': "User ranking",
     'add-to-group': "Please add the bot to a group to get started!",
+    'help-do-group-format': "Please use the format:\n"
+                            "/do [title] @[username] in [count] [days|weeks|...]\n"
+                            "e.g.: /do cleanup @sam in 3 days",
 }
