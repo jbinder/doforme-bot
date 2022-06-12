@@ -58,20 +58,34 @@ class DoForMeCommandHandler(CommandHandlerBase):
             user_data['chat_id'] = update.message.chat_id
 
             mention = next((x for x in update.message.entities if x.type == 'text_mention'), None)
-            if mention is None:
-                self.telegram_service.send_reply(update.message, self.texts['help-do-group-format'])
-                return
 
-            text = update.message.text[:mention.offset] + '@' + update.message.text[mention.offset:]
-            text = text[len("/do"):].strip()
-            parsed_text = re.match("(.*)@(.*)\s+in\s+(\d+)\s+(.*)", text).groups()
+            if mention is None:
+                # resolve user id by name
+                chat_users = self.telegram_service.get_chat_users(bot, user_data['chat_id'])
+                parsed_text = re.match("(.*)@(.*)\s+in\s+(\d+)\s+(.*)", text).groups()
+                user_name_parsed = parsed_text[1].strip()
+                user_data['user_id'] = next(
+                    (user_id for (user_id, user_name) in chat_users if user_name == '@' + user_name_parsed), 0)
+
+                if len(parsed_text) != 4 or not user_name_parsed:
+                    self.telegram_service.send_reply(update.message, self.texts['help-do-group-format'])
+                    return
+
+                if user_data['user_id'] == 0:
+                    self.telegram_service.send_reply(update.message, self.texts['help-do-group-user-not-registered'](user_name_parsed))
+                    return
+            else:
+                # resolve user id using message metadata
+                text = update.message.text[:mention.offset] + '@' + update.message.text[mention.offset:]
+                text = text[len("/do"):].strip()
+                parsed_text = re.match("(.*)@(.*)\s+in\s+(\d+)\s+(.*)", text).groups()
+                user_data['user_id'] = mention.user.id
 
             if len(parsed_text) != 4:
                 self.telegram_service.send_reply(update.message, self.texts['help-do-group-format'])
                 return
 
             user_data['title'] = DoForMeCommandHandler._escape_text(parsed_text[0].strip())
-            user_data['user_id'] = mention.user.id
 
             unit = parsed_text[3] + 's' if parsed_text[3][-1:] != 's' else parsed_text[3]
             timedelta_args = {unit: int(parsed_text[2])}
