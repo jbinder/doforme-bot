@@ -1,6 +1,6 @@
 from common.texts import bot_name
 
-texts = {
+texts_informal = {
     'missing-title': lambda name: f"Please include a task title, {name}!",
     'select-chat': f"Which is the place of power?\nSelect below!",
     'select-user': lambda title, name: f"Whom do you want to enslave doing {title} for you, {name}?\n"
@@ -88,3 +88,19 @@ texts = {
                             "/do [title] @[username] in [count] [days|weeks|...]\n"
                             "e.g.: /do cleanup @sam in 3 days",
 }
+
+texts_formal = {
+    'select-chat': f"Please select the group below!",
+    'select-user': lambda title, name: f"Who should pick up '{title}' for you, {name}?\n"
+                                       f"Select below!",
+    'added-task': lambda name, title: f"I assigned {name} with your task '{title}'.",
+    'added-task-to-group':
+        lambda owner_name, user_name, title, due: f"{owner_name} assigned '{title}' to {user_name}" + (
+            "" if not due else f", due {due.date()}") + ".",
+    'task-review-most-busy': lambda user_names, multiple:
+    "The most member" + ("s" if multiple else "") + " of this week " + ("are" if multiple else "is") +
+    f" {user_names}!\nCongratulations!",
+    'task-done': lambda title: f"Great job completing task '{title}'!",
+}
+
+texts = {**texts_informal, **texts_formal}

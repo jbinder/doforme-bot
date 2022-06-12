@@ -70,7 +70,7 @@ class DoForMeCommandHandler(CommandHandlerBase):
                 self.telegram_service.send_reply(update.message, self.texts['help-do-group-format'])
                 return
 
-            user_data['title'] = DoForMeCommandHandler._escape_text(parsed_text[0])
+            user_data['title'] = DoForMeCommandHandler._escape_text(parsed_text[0].strip())
             user_data['user_id'] = mention.user.id
 
             unit = parsed_text[3] + 's' if parsed_text[3][-1:] != 's' else parsed_text[3]
