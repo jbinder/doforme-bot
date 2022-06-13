@@ -68,19 +68,27 @@ class TelegramService:
                               reply_markup=None
                               )
 
-    @staticmethod
-    def send_message(bot, user_id, text, parse_mode: telegram.ParseMode=telegram.ParseMode.HTML,
+    def send_message(self, bot, user_id, text, parse_mode: telegram.ParseMode=telegram.ParseMode.HTML,
                      reply_markup=None, skip_escaping=False):
         if parse_mode is telegram.ParseMode.MARKDOWN and not skip_escaping:
             text = TelegramService.escape_text(text)
-        bot.send_message(user_id, text, parse_mode=parse_mode, reply_markup=reply_markup)
+        try:
+            bot.send_message(user_id, text, parse_mode=parse_mode, reply_markup=reply_markup)
+            return True
+        except Exception:
+            self.logger.exception(f"Unable to send message to user: {user_id}.")
+            return False
 
-    @staticmethod
-    def send_reply(message: telegram.message, text, reply_markup=None, quote=False,
+    def send_reply(self, message: telegram.message, text, reply_markup=None, quote=False,
                    parse_mode: telegram.ParseMode=telegram.ParseMode.HTML, skip_escaping=False):
         if parse_mode is telegram.ParseMode.MARKDOWN and not skip_escaping:
             text = TelegramService.escape_text(text)
-        message.reply_text(text, reply_markup=reply_markup, quote=quote, parse_mode=parse_mode)
+        try:
+            message.reply_text(text, reply_markup=reply_markup, quote=quote, parse_mode=parse_mode)
+            return True
+        except Exception:
+            self.logger.exception(f"Unable to send reply to user.")
+            return False
 
     @staticmethod
     def escape_text(text: str):

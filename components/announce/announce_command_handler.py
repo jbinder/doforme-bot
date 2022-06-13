@@ -21,6 +21,11 @@ class AnnounceCommandHandler(CommandHandlerBase):
             return
         users = self.user_service.get_all_users()
         message = f"{self.texts['announcement-prefix']}\n{text}\n\n{self.texts['feedback-reply-postfix']}"
+        num_success = 0
+        num_failed = 0
         for user_id in users:
-            bot.send_message(user_id, message)
-        update.message.reply_text(self.texts['announcement-sent'](len(users)))
+            if self.telegram_service.send_message(bot, user_id, message):
+                num_success += 1
+            else:
+                num_failed += 1
+        self.telegram_service.send_reply(update.message, self.texts['announcement-sent'](num_success, num_failed))
