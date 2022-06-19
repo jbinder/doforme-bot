@@ -123,11 +123,12 @@ class TaskService:
     @db_session
     @db_use_utf8mb(db)
     @retry_on_error
-    def clean_titles(self):
+    def clean_data(self):
         # noinspection PyTypeChecker
-        tasks = select(task for task in Task if task.done is not None and task.title != "-")[:]
+        tasks = select(task for task in Task if task.done is not None and (task.title != "-" or task.description != ""))[:]
         for task in tasks:
             task.title = "-"
+            task.description = "" if not task.description else "-"
         commit()
 
     @db_session

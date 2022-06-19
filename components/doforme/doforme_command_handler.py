@@ -494,5 +494,5 @@ class DoForMeCommandHandler(CommandHandlerBase):
         if self.job_log_service.has_run_recently(job_name):
             return
         self._show_weekly_review(bot)
-        self.task_service.clean_titles()
+        self.task_service.clean_data()
         self.job_log_service.update_job_log(job_name)

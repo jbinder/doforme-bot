@@ -69,11 +69,12 @@ class TestTaskService(unittest.TestCase):
         )
         self.assertEqual(expected_stats, stats)
 
-    def test_clean_titles(self):
-        self.service.clean_titles()
+    def test_clean_data(self):
+        self.service.clean_data()
         tasks = self.service.get_tasks(self.user1_id)
         for task in tasks:
             self.assertEqual(task.done is None, task.title != "-")
+            self.assertEqual(task.done is None, task.description != "-")
 
     @staticmethod
     def _get_expected_no_tasks_stats():
@@ -98,22 +99,23 @@ class TestTaskService(unittest.TestCase):
 
     @db_session
     def _populate_database(self, db):
-        self._create_task(db, 'Task w2_done', self.chat_id, self.user1_id, self.user2_id, self._get_date(-3),
+        self._create_task(db, 'Task w2_done', "descr 1", self.chat_id, self.user1_id, self.user2_id, self._get_date(-3),
                           self._get_date(-5))
-        self._create_task(db, 'Task w2_open', self.chat_id, self.user1_id, self.user2_id, self._get_date(-3), None)
-        self._create_task(db, 'Task w2_open', 0, self.user1_id, self.user2_id, self._get_date(-3), None)
+        self._create_task(db, 'Task w2_open', "descr 2", self.chat_id, self.user1_id, self.user2_id, self._get_date(-3), None)
+        self._create_task(db, 'Task w2_open', "descr 3", 0, self.user1_id, self.user2_id, self._get_date(-3), None)
 
     @staticmethod
     def _get_date(offset_days):
         return datetime.utcnow() + timedelta(days=offset_days)
 
     @staticmethod
-    def _create_task(db, title, chat_id, user1_id, user2_id, created, done):
+    def _create_task(db, title, description, chat_id, user1_id, user2_id, created, done):
         db.Task(
             user_id=user1_id,
             chat_id=chat_id,
             owner_id=user2_id,
             title=title,
+            description=description,
             created=created,
             done=done)
 
