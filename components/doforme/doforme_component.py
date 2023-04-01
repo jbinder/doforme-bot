@@ -22,6 +22,8 @@ class DoForMeComponent(ComponentBase):
             ('tasks', self.command_handler.tasks_show, False),
             ('stats', self.command_handler.stats_show, False),
             ('admin-stats', self.command_handler.admin_stats, False),
+            ('due', self.command_handler.job_daily_tasks_show_all, False),
+            ('weekly', self.command_handler.job_weekly_review, False),
         ]
         super()._register_command_handlers(dp, cmd_handlers)
 

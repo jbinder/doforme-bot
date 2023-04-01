@@ -16,6 +16,7 @@ class Task(db.Entity):
     done = Optional(datetime)
     due = Optional(datetime)
     description = Optional(str)
+    is_group_task = Required(bool)
 
 
 init_database(db)

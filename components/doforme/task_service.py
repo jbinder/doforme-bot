@@ -19,7 +19,8 @@ class TaskService:
             title=data['title'],
             created=datetime.utcnow(),
             due=data['due'],
-            description=data['description'])
+            description=data['description'],
+            is_group_task=data['is_group_task'])
         commit()
 
     @db_session
@@ -95,10 +96,12 @@ class TaskService:
     @db_session
     @db_use_utf8mb(db)
     @retry_on_error
-    def complete_task(self, task_id):
+    def complete_task(self, task_id, user_id=None):
         """ :returns True if completed, False if has been completed already """
         if Task[task_id].done is None:
             Task[task_id].done = datetime.utcnow()
+            if Task[task_id].is_group_task:
+                Task[task_id].user_id = user_id
             commit()
             return True
         return False

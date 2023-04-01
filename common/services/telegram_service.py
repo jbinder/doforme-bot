@@ -34,6 +34,8 @@ class TelegramService:
 
     def get_user_name(self, bot, chat_id, user_id):
         user_name = 'unknown'
+        if user_id == 0 and chat_id != 0:
+            return 'anyone'
         try:
             user_name = bot.getChatMember(chat_id, user_id).user.name
         except ChatMigrated as e:
@@ -53,6 +55,8 @@ class TelegramService:
         Warning: This is only shown correctly in messages with parse_mode=telegram.ParseMode.MARKDOWN!
         :returns A link to the specified user ('mention') in Markdown format, e.g. "@user1"
         """
+        if user_id == 0:
+            return 'anyone in here'
         user_name = self.get_user_name(bot, chat_id, user_id)
         return f"[{user_name}](tg://user?id={user_id})"
 
