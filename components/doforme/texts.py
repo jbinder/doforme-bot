@@ -90,7 +90,8 @@ texts_informal = {
     'add-to-group': "Please add the bot to a group to get started!",
     'help-do-group-format': "Please use the format:\n"
                             "/do [title] @[username] in [count] [days|weeks|...]\n"
-                            "e.g.: /do cleanup @sam in 3 days",
+                            "e.g. assign to a specific user: /do cleanup @sam in 3 days\n"
+                            "e.g. assign to the group: /do cleanup in 2 weeks",
     'help-do-group-user-not-registered': lambda user_name: f"@{user_name}: please make sure to say hi to the bot, so the bot might assign tasks to you!"
 }
 

@@ -487,7 +487,7 @@ class DoForMeCommandHandler(CommandHandlerBase):
     def _to_group_task_list(self, bot, tasks):
         return "\n".join([self.texts['task-line-group'](task, self.telegram_service.get_user_name(bot, task.chat_id, task.user_id),
                                                         self.telegram_service.get_user_name(bot, task.chat_id, task.owner_id))
-                          for task in tasks if task.is_group_task])
+                          for task in tasks])
 
     def _to_task_list(self, bot, due_tasks):
         return "\n".join([self.texts['task-line'](bot.getChat(task.chat_id).title, task.title,
