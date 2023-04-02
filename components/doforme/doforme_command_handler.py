@@ -520,7 +520,7 @@ class DoForMeCommandHandler(CommandHandlerBase):
 
     def job_daily_tasks_show_all(self, bot, update):
         job_name = 'daily_tasks_show_all'
-        is_admin = self._is_admin(update.effective_user.id)
+        is_admin = hasattr(update, 'effective_user') and self._is_admin(update.effective_user.id)
         if self.job_log_service.has_run_recently(job_name) and not is_admin:
             return
         show_all = date.today().weekday() == self.show_all_tasks_weekday
