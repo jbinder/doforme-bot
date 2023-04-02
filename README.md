@@ -12,6 +12,7 @@ Features
 
 * Create tasks including due date and assignee
 * Mark tasks as complete
+* Assign tasks to individual users or groups
 * Edit due date of tasks
 * Daily reminder of your open tasks
 * Weekly review

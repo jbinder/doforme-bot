@@ -133,12 +133,14 @@ class DoForMeCommandHandler(CommandHandlerBase):
             .replace("`", "\\`")
 
     def _do_select_user(self, bot, message, user_data):
+        users = self.telegram_service.get_chat_users(bot, user_data['chat_id'])
+        users.append((0, 'Anyone'))
         markup = InlineKeyboardMarkup(
             [[InlineKeyboardButton(text=user_name, callback_data=f"user_id:{user_id}")]
-             for (user_id, user_name) in self.telegram_service.get_chat_users(bot, user_data['chat_id'])],
+             for (user_id, user_name) in users],
             one_time_keyboard=True)
         self.telegram_service.send_reply(message, self.texts['select-user'](user_data['title'], message.chat.first_name),
-                           reply_markup=markup, quote=False, parse_mode=telegram.ParseMode.MARKDOWN)
+                                         reply_markup=markup, quote=False, parse_mode=telegram.ParseMode.MARKDOWN)
 
     def _do_select_due(self, bot, message, user_data):
         reply = telegramcalendar.create_calendar(indicate_today=True)
