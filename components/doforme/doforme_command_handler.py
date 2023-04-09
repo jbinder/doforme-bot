@@ -387,10 +387,9 @@ class DoForMeCommandHandler(CommandHandlerBase):
 
         for chat_id in self.user_service.get_all_chats():
             tasks = [task for task in self.task_service.get_tasks_for_chat(chat_id)
-                     if not task.done and task.is_group_task and task.due.date() == datetime.today().date()]
+                     if not task.done and task.is_group_task and task.due.date() <= datetime.today().date()]
             if len(tasks) > 0:
-                message = (f"{self.texts['summary-due-today']}:\n{self._to_group_task_list(bot, tasks)}\n\n"
-                           if tasks else "")
+                message = f"{self.texts['summary-due-today']}:\n{self._to_group_task_list(bot, tasks)}"
                 self.telegram_service.send_message(bot, chat_id, message, parse_mode=telegram.ParseMode.MARKDOWN)
 
     def _get_task_summary(self, bot, user_id, show_near_future_tasks, show_far_future_tasks):
