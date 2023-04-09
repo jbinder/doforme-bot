@@ -169,7 +169,8 @@ class DoForMeCommandHandler(CommandHandlerBase):
             tasks = self._get_chat_tasks(bot, update.effective_chat.id)
             self.telegram_service.send_reply(update.message, tasks,
                                       parse_mode=telegram.ParseMode.MARKDOWN)
-            group_tasks = [task for task in self.task_service.get_tasks(0) if not task.done]
+            group_tasks = [task for task in self.task_service.get_tasks_for_chat(update.effective_chat.id)
+                           if not task.done and task.user_id == 0]
             if len(group_tasks) > 0:
                 self.telegram_service.send_reply(update.message, f"{self.texts['task-headline-assigned-group']}:",
                                                  parse_mode=telegram.ParseMode.MARKDOWN)
