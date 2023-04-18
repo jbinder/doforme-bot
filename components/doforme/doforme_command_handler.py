@@ -26,9 +26,9 @@ class DoForMeCommandHandler(CommandHandlerBase):
     show_all_tasks_weekday: int
     job_log_service: JobLogService
 
-    def __init__(self, admin_id, texts, telegram_service, bot_name, task_service, user_service, feedback_service,
+    def __init__(self, admin_id, callbacks, texts, telegram_service, bot_name, task_service, user_service, feedback_service,
                  show_all_tasks_weekday, job_log_service):
-        super().__init__(admin_id, texts, telegram_service)
+        super().__init__(admin_id, callbacks, texts, telegram_service)
         self.feedback_service = feedback_service
         self.user_service = user_service
         self.bot_name = bot_name
@@ -161,7 +161,7 @@ class DoForMeCommandHandler(CommandHandlerBase):
         self.telegram_service.send_message(bot, chat_id, self.texts['added-task-to-group'](owner_user_name, user_name,
                                                                                            title_escaped,
                                                                                            user_data['due']),
-                                           parse_mode=telegram.ParseMode.MARKDOWN, skip_escaping=True)
+                                           parse_mode=telegram.ParseMode.MARKDOWN, skip_escaping=True, is_chat=True)
 
     @show_typing
     def tasks_show(self, bot, update):
@@ -258,7 +258,7 @@ class DoForMeCommandHandler(CommandHandlerBase):
                                                      quote=False, parse_mode=telegram.ParseMode.MARKDOWN, skip_escaping=True)
                 self.telegram_service.send_message(bot,
                     task.chat_id, self.texts['task-done-to-group'](owner_name, user_name, title_escaped),
-                    parse_mode=telegram.ParseMode.MARKDOWN, skip_escaping=True)
+                    parse_mode=telegram.ParseMode.MARKDOWN, skip_escaping=True, is_chat=True)
         elif data[0] == "edit-date":
             user_data['task_id'] = data[1]
             self._do_select_due(bot, update.callback_query.message, user_data)
@@ -330,7 +330,7 @@ class DoForMeCommandHandler(CommandHandlerBase):
         self.telegram_service.send_message(bot, task.chat_id,
                          self.texts['update-task-due-denied'](
                              requestee_name, requestor_name, self.telegram_service.escape_text(task.title), task.due, new_due),
-                         parse_mode=telegram.ParseMode.MARKDOWN, skip_escaping=True)
+                         parse_mode=telegram.ParseMode.MARKDOWN, skip_escaping=True, is_chat=True)
         self.telegram_service.send_reply(update.callback_query.message, self.texts['update-denied'])
 
     def _edit_due_accept(self, bot, data, update):
@@ -341,7 +341,7 @@ class DoForMeCommandHandler(CommandHandlerBase):
         self.telegram_service.send_message(bot,
             chat_id, self.texts['update-task-due-accepted'](
                 requestee_name, requestor_name, self.telegram_service.escape_text(task.title), prev_due, new_due),
-            parse_mode=telegram.ParseMode.MARKDOWN, skip_escaping=True)
+            parse_mode=telegram.ParseMode.MARKDOWN, skip_escaping=True, is_chat=True)
         self.telegram_service.send_reply(update.callback_query.message, self.texts['update-granted'])
 
     def _get_edit_due_request_data(self, bot, data, update):
@@ -391,7 +391,8 @@ class DoForMeCommandHandler(CommandHandlerBase):
                      if not task.done and task.is_group_task and task.due.date() <= datetime.today().date()]
             if len(tasks) > 0:
                 message = f"{self.texts['summary-due-today']}:\n{self._to_group_task_list(bot, tasks)}"
-                self.telegram_service.send_message(bot, chat_id, message, parse_mode=telegram.ParseMode.MARKDOWN)
+                self.telegram_service.send_message(bot, chat_id, message, parse_mode=telegram.ParseMode.MARKDOWN,
+                                                   is_chat=True)
 
     def _get_task_summary(self, bot, user_id, show_near_future_tasks, show_far_future_tasks):
         due_past = self.task_service.get_due_past(user_id)
@@ -484,7 +485,8 @@ class DoForMeCommandHandler(CommandHandlerBase):
                 message = message + self.texts['task-review-user-stats'](user_name, done, on_time) + "\n"
 
             message = message + f"\n{self.texts['task-review-motivation']}"
-            self.telegram_service.send_message(bot, chat_id, message, parse_mode=telegram.ParseMode.MARKDOWN)
+            self.telegram_service.send_message(bot, chat_id, message, parse_mode=telegram.ParseMode.MARKDOWN,
+                                               is_chat=True)
 
     def _to_group_task_list(self, bot, tasks):
         return "\n".join([self.texts['task-line-group'](task, self.telegram_service.get_user_name(bot, task.chat_id, task.user_id),
