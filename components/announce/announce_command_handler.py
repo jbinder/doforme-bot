@@ -7,8 +7,8 @@ class AnnounceCommandHandler(CommandHandlerBase):
 
     user_service: UserService
 
-    def __init__(self, admin_id, texts, telegram_service, user_service):
-        super().__init__(admin_id, texts, telegram_service)
+    def __init__(self, admin_id, callbacks, texts, telegram_service, user_service):
+        super().__init__(admin_id, callbacks, texts, telegram_service)
         self.user_service = user_service
 
     @show_typing

@@ -1,6 +1,6 @@
 import abc
-from typing import Dict
 
+from common.services.event_service import EventService
 from common.texts import texts as common_texts
 from common.event_type import EventType
 from common.services.telegram_service import TelegramService
@@ -10,26 +10,21 @@ from texts import texts as text_overrides
 class CommandHandlerBase(metaclass=abc.ABCMeta):
 
     telegram_service: TelegramService
-    callbacks: Dict[EventType, list]
+    event_service: EventService
     admin_id: int
     texts: dict
 
-    def __init__(self, admin_id: int, texts: dict, telegram_service: TelegramService):
-        self.telegram_service = telegram_service
+    def __init__(self, admin_id: int, event_service: EventService, texts: dict, telegram_service: TelegramService):
         self.admin_id = admin_id
+        self.event_service = event_service
         self.texts = {**common_texts, **texts, **text_overrides}
-        self.callbacks = {}
+        self.telegram_service = telegram_service
 
     def register_observer(self, event_type: EventType, observer: callable):
-        if event_type not in self.callbacks:
-            self.callbacks[event_type] = []
-        self.callbacks[event_type].append(observer)
+        self.event_service.register_observer(event_type, observer)
 
     def notify_observers(self, event_type: EventType, args: dict):
-        if event_type not in self.callbacks:
-            return
-        for observer in self.callbacks[event_type]:
-            observer(args)
+        self.event_service.notify_observers(event_type, args)
 
     def _is_admin(self, user_id):
         return self.admin_id and self.admin_id == user_id

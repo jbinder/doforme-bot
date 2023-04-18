@@ -15,7 +15,7 @@ class CoreComponent(ComponentBase):
 
     def init(self, dp: Dispatcher):
         cmd_handlers = [
-            ('start', self.command_handler.help_show, False),
+            ('start', self.command_handler.start, False),
             ('help', self.command_handler.help_show, False),
         ]
         super()._register_command_handlers(dp, cmd_handlers)

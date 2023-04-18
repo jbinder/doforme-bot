@@ -2,10 +2,12 @@ from logging import Logger
 from typing import List
 
 import telegram
-from telegram.error import ChatMigrated
+from telegram.error import ChatMigrated, BadRequest
 from telegram.utils.helpers import escape_markdown
 
+from common.common_event_type import CommonEventType
 from common.migration_handler_base import MigrationHandlerBase
+from common.services.event_service import EventService
 from components.user.user_service import UserService
 
 
@@ -14,11 +16,13 @@ class TelegramService:
     logger: Logger
     user_service: UserService
     migration_handlers: List[MigrationHandlerBase]
+    event_service: EventService
 
-    def __init__(self, user_service, logger, migration_handlers: List[MigrationHandlerBase]):
+    def __init__(self, user_service, logger, event_service, migration_handlers: List[MigrationHandlerBase]):
         self.user_service = user_service
         self.logger = logger
         self.migration_handlers = migration_handlers
+        self.event_service = event_service
 
     def get_chat_users(self, bot, chat_id):
         """ :returns a list of tuples containing id and name of users of the specified chat """
@@ -73,14 +77,17 @@ class TelegramService:
                               )
 
     def send_message(self, bot, user_id, text, parse_mode: telegram.ParseMode=telegram.ParseMode.HTML,
-                     reply_markup=None, skip_escaping=False):
+                     reply_markup=None, skip_escaping=False, is_chat=False):
         if parse_mode is telegram.ParseMode.MARKDOWN and not skip_escaping:
             text = TelegramService.escape_text(text)
         try:
             bot.send_message(user_id, text, parse_mode=parse_mode, reply_markup=reply_markup)
             return True
-        except Exception:
-            self.logger.exception(f"Unable to send message to user: {user_id}.")
+        except Exception as e:
+            self.event_service.notify_observers(
+                CommonEventType.USER_SEND_FAILED if not is_chat else CommonEventType.CHAT_SEND_FAILED,
+                {'user_id': user_id, 'exception': e} if not is_chat else {'chat_id': user_id, 'exception': e})
+            self.logger.exception(f"Unable to send message to user/chat: {user_id}.")
             return False
 
     def send_reply(self, message: telegram.message, text, reply_markup=None, quote=False,
@@ -90,7 +97,9 @@ class TelegramService:
         try:
             message.reply_text(text, reply_markup=reply_markup, quote=quote, parse_mode=parse_mode)
             return True
-        except Exception:
+        except Exception as e:
+            self.event_service.notify_observers(
+                CommonEventType.USER_SEND_FAILED, {'user_id': message.from_user, 'exception': e})
             self.logger.exception(f"Unable to send reply to user.")
             return False
 

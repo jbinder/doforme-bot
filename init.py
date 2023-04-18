@@ -1,3 +1,4 @@
+from common.services.event_service import EventService
 from common.utils.logging_tools import get_logger
 from components.announce.announce_command_handler import AnnounceCommandHandler
 from components.announce.announce_component import AnnounceComponent
@@ -27,17 +28,19 @@ from texts import bot_name
 
 def create_bot(admin_id: int):
     logger = get_logger()
+    event_queue = {}
+    event_service = EventService(logger, event_queue)
     user_service = UserService()
-    telegram_service = TelegramService(user_service, logger, [UserMigrationHandler(), DoForMeMigrationHandler()])
-    core_command_handler = CoreCommandHandler(admin_id, core_texts, telegram_service)
-    user_command_handler = UserCommandHandler(admin_id, user_texts, telegram_service, bot_name, user_service)
+    telegram_service = TelegramService(user_service, logger, event_service, [UserMigrationHandler(), DoForMeMigrationHandler()])
+    core_command_handler = CoreCommandHandler(admin_id, event_service, core_texts, telegram_service)
+    user_command_handler = UserCommandHandler(admin_id, event_service, user_texts, telegram_service, bot_name, user_service)
     feedback_service = FeedbackService()
-    feedback_command_handler = FeedbackCommandHandler(admin_id, feedback_texts, telegram_service, feedback_service)
-    announce_command_handler = AnnounceCommandHandler(admin_id, announce_texts, telegram_service, user_service)
+    feedback_command_handler = FeedbackCommandHandler(admin_id, event_service, feedback_texts, telegram_service, feedback_service)
+    announce_command_handler = AnnounceCommandHandler(admin_id, event_service, announce_texts, telegram_service, user_service)
     task_service = TaskService()
     job_log_service = JobLogService()
     doforme_command_handler = DoForMeCommandHandler(
-        admin_id, doforme_texts, telegram_service, bot_name, task_service, user_service, feedback_service, 5,
+        admin_id, event_service, doforme_texts, telegram_service, bot_name, task_service, user_service, feedback_service, 5,
         job_log_service)
     components = {
         'core': CoreComponent(core_command_handler),

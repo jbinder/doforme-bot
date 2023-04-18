@@ -7,8 +7,8 @@ class FeedbackCommandHandler(CommandHandlerBase):
 
     feedback_service: FeedbackService
 
-    def __init__(self, admin_id, texts, telegram_service, feedback_service):
-        super().__init__(admin_id, texts, telegram_service)
+    def __init__(self, admin_id, callbacks, texts, telegram_service, feedback_service):
+        super().__init__(admin_id, callbacks, texts, telegram_service)
         self.feedback_service = feedback_service
 
     @show_typing

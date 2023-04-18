@@ -83,6 +83,10 @@ CommandHandlers allow observers to register for event notifications:
 
     register_observer(event_type: EventType, observer: Callable)
 
+Events are triggered in CommandHandlers using:
+
+    notify_observers(event_type: EventType, payload: Object)
+
 ## Run
 
 The bot can be run using as console (polling, recommended for local testing)
@@ -122,6 +126,8 @@ Note: The character set of the database needs to be set to utf8mb4!
 The admin id is the Telegram user id of the user that is allowed to execute admin commands (admin-...).
 
 ## Development
+
+:warning: ptbtest does not support later Telegram bot base versions.
 
 Tests can be run using [nose][]:
 
