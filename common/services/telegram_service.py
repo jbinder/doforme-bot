@@ -33,8 +33,15 @@ class TelegramService:
         """ :returns a list of tuples containing id and name of chats of the specified user """
         chats = []
         for chat_id in self.user_service.get_chats_of_user(user_id):
-            chats.append((chat_id, bot.getChat(chat_id).title))
+            chats.append((chat_id, self.get_chat(bot, chat_id).title))
         return chats
+
+    def get_chat(self, bot, chat_id):
+        try:
+            return bot.getChat(chat_id)
+        except Exception:
+            self.logger.exception(f"Unable to get chat.")
+            return type('', (object,), {'title': 'unknown'})()
 
     def get_user_name(self, bot, chat_id, user_id):
         user_name = 'unknown'

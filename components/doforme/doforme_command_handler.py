@@ -193,7 +193,7 @@ class DoForMeCommandHandler(CommandHandlerBase):
         if len(tasks) < 1:
             self.telegram_service.send_reply(update.message, self.texts['no-tasks'])
         for task in tasks:
-            task_summary = self.texts['task-line-summary'](task, bot.getChat(task.chat_id).title,
+            task_summary = self.texts['task-line-summary'](task, self.telegram_service.get_chat(bot, task.chat_id).title,
                                                            self.telegram_service.get_user_name(bot, task.chat_id, task.user_id))
             markup = self._get_owned_task_markup(task)
             self.telegram_service.send_reply(update.message, task_summary, reply_markup=markup, parse_mode=telegram.ParseMode.MARKDOWN)
@@ -204,7 +204,7 @@ class DoForMeCommandHandler(CommandHandlerBase):
                                                                  self.telegram_service.get_user_name(bot, task.chat_id,
                                                                                                      task.owner_id))
         else:
-            task_summary = self.texts['task-line-summary'](task, bot.getChat(task.chat_id).title,
+            task_summary = self.texts['task-line-summary'](task, self.telegram_service.get_chat(bot, task.chat_id).title,
                                                            self.telegram_service.get_user_name(bot, task.chat_id,
                                                                                                task.owner_id))
         markup = self._get_assigned_task_markup(task)
@@ -358,7 +358,7 @@ class DoForMeCommandHandler(CommandHandlerBase):
         if len(tasks) < 1:
             return self.texts['no-tasks']
 
-        return f"{self.texts['task-overview-group'](bot.getChat(chat_id).title)}:\n" \
+        return f"{self.texts['task-overview-group'](self.telegram_service.get_chat(bot, chat_id).title)}:\n" \
             f"{self._to_group_task_list(bot, tasks)}\n\n" \
             f"{self.texts['task-overview-private-chat']}"
 
@@ -417,7 +417,7 @@ class DoForMeCommandHandler(CommandHandlerBase):
 
     def _show_weekly_review(self, bot):
         for chat_id in self.user_service.get_all_chats():
-            message = f"{self.texts['task-review'](bot.getChat(chat_id).title)}:\n\n"
+            message = f"{self.texts['task-review'](self.telegram_service.get_chat(bot, chat_id).title)}:\n\n"
 
             now = datetime.now()
             last_week = now - timedelta(days=7)
@@ -494,7 +494,7 @@ class DoForMeCommandHandler(CommandHandlerBase):
                           for task in tasks])
 
     def _to_task_list(self, bot, due_tasks):
-        return "\n".join([self.texts['task-line'](bot.getChat(task.chat_id).title, task.title,
+        return "\n".join([self.texts['task-line'](self.telegram_service.get_chat(bot, task.chat_id).title, task.title,
                                                   self.telegram_service.get_user_name(bot, task.chat_id, task.owner_id))
                           for task in due_tasks])
 
