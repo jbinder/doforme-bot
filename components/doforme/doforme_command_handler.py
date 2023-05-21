@@ -198,7 +198,7 @@ class DoForMeCommandHandler(CommandHandlerBase):
             markup = self._get_owned_task_markup(task)
             self.telegram_service.send_reply(update.message, task_summary, reply_markup=markup, parse_mode=telegram.ParseMode.MARKDOWN)
 
-    def _show_own_task(self, bot, task, update):
+    def _show_own_task(self, bot, task, update=None):
         if task.is_group_task:
             task_summary = self.texts['task-line-summary-group'](task,
                                                                  self.telegram_service.get_user_name(bot, task.chat_id,
@@ -208,8 +208,12 @@ class DoForMeCommandHandler(CommandHandlerBase):
                                                            self.telegram_service.get_user_name(bot, task.chat_id,
                                                                                                task.owner_id))
         markup = self._get_assigned_task_markup(task)
-        self.telegram_service.send_reply(update.message, task_summary, reply_markup=markup,
-                                         parse_mode=telegram.ParseMode.MARKDOWN)
+        if update is not None:
+            self.telegram_service.send_reply(update.message, task_summary, reply_markup=markup,
+                                             parse_mode=telegram.ParseMode.MARKDOWN)
+        else:
+            self.telegram_service.send_message(bot, task.chat_id, task_summary, reply_markup=markup,
+                                             parse_mode=telegram.ParseMode.MARKDOWN, is_chat=True)
 
     @show_typing
     def stats_show(self, bot, update):
@@ -389,10 +393,13 @@ class DoForMeCommandHandler(CommandHandlerBase):
         for chat_id in self.user_service.get_all_chats():
             tasks = [task for task in self.task_service.get_tasks_for_chat(chat_id)
                      if not task.done and task.is_group_task and task.due.date() <= datetime.today().date()]
+
             if len(tasks) > 0:
-                message = f"{self.texts['summary-due-today']}:\n{self._to_group_task_list(bot, tasks)}"
+                message = f"{self.texts['summary-due-today']}:"
                 self.telegram_service.send_message(bot, chat_id, message, parse_mode=telegram.ParseMode.MARKDOWN,
                                                    is_chat=True)
+                for task in tasks:
+                    self._show_own_task(bot, task)
 
     def _get_task_summary(self, bot, user_id, show_near_future_tasks, show_far_future_tasks):
         due_past = self.task_service.get_due_past(user_id)
