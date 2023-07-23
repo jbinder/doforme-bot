@@ -48,7 +48,7 @@ class TelegramService:
         if user_id == 0 and chat_id != 0:
             return 'anyone'
         try:
-            user_name = bot.getChatMember(chat_id, user_id).user.name
+            user_name = bot.getChatMember(chat_id, user_id).user.name.lstrip('@')  # Note: a leading @ might be present
         except ChatMigrated as e:
             self.logger.exception(f"Chat has been migrated to Supergroup (chat/user): {chat_id}/{user_id}.")
             try:
