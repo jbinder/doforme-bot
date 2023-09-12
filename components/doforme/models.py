@@ -10,7 +10,7 @@ db = get_database()
 class Task(db.Entity):
     user_id = Required(int, size=64)
     chat_id = Required(int, size=64)
-    owner_id = Required(int)
+    owner_id = Required(int, size=64)
     title = Required(str)
     created = Required(datetime)
     done = Optional(datetime)
