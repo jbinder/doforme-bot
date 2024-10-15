@@ -8,6 +8,7 @@ from common.utils.socket_app_lock import SocketAppLock
 
 def main():
     logger = get_logger()
+    logger.info("Booting...")
     if not __debug__:
         lock_name = "python-telegram-bot.main.lock"
         app_lock = SocketAppLock(lock_name, logger)

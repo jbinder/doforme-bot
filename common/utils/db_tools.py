@@ -19,7 +19,7 @@ def init_database(db):
         db.bind(provider='sqlite', filename=':memory:')
     else:
         # use sqlite as fallback
-        db.bind(provider='sqlite', filename='database.sqlite', create_db=True)
+        db.bind(provider='sqlite', filename='../../data/database.sqlite', create_db=True)
 
     db.generate_mapping(create_tables=True)
 

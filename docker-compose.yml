@@ -1,0 +1,15 @@
+name: doforme
+services:
+    bot:
+        volumes:
+            - .:/code/app
+            - ./data:/code/app/data
+        container_name: doforme-bot
+        build: 
+            context: .
+        working_dir: /code/app
+        #environment:
+        restart: always
+        env_file:
+            -   .env
+        command: sh -c "python main.py -t ${TELEGRAM_TOKEN} -a ${ADMIN_ID}"
